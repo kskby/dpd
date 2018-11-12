@@ -117,14 +117,14 @@ class Agent
 		$fields = [
 			'LOCATION_ID'               => $item['ADDRESS']['CITY_ID'],
 
-			'CODE'                      => $item['TERMINAL_CODE'] ?: $item['CODE'],
+			'CODE'                      => isset($item['TERMINAL_CODE']) ? $item['TERMINAL_CODE'] : $item['CODE'],
 			'NAME'                      => $this->normalizeAddress($item['ADDRESS'], true),
 
 			'ADDRESS_FULL'              => $this->normalizeAddress($item['ADDRESS']),
 			'ADDRESS_SHORT'             => $this->normalizeAddress($item['ADDRESS'], true),
-			'ADDRESS_DESCR'             => $item['ADDRESS']['DESCRIPT'],
+			'ADDRESS_DESCR'             => isset($item['ADDRESS']['DESCRIPT']) ? $item['ADDRESS']['DESCRIPT'] : null,
 
-			'PARCEL_SHOP_TYPE'          => $item['PARCEL_SHOP_TYPE'],
+			'PARCEL_SHOP_TYPE'          => isset($item['PARCEL_SHOP_TYPE']) ? $item['PARCEL_SHOP_TYPE'] : null,
 
 			'SCHEDULE_SELF_PICKUP'      => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfPickup')),
 			'SCHEDULE_SELF_DELIVERY'    => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfDelivery')),
@@ -149,13 +149,13 @@ class Agent
 
 		if (isset($item['LIMITS'])) {
 			$fields['IS_LIMITED']                = 'Y';
-			$fields['LIMIT_MAX_SHIPMENT_WEIGHT'] = $item['LIMITS']['MAX_SHIPMENT_WEIGHT'] ?: 0;
-			$fields['LIMIT_MAX_WEIGHT']          = $item['LIMITS']['MAX_WEIGHT'];
-			$fields['LIMIT_MAX_LENGTH']          = $item['LIMITS']['MAX_LENGTH'];
-			$fields['LIMIT_MAX_WIDTH']           = $item['LIMITS']['MAX_WIDTH'];
-			$fields['LIMIT_MAX_HEIGHT']          = $item['LIMITS']['MAX_HEIGHT'];
-			$fields['LIMIT_MAX_VOLUME']          = round($item['LIMITS']['MAX_WIDTH'] * $item['LIMITS']['MAX_HEIGHT'] * $item['LIMITS']['MAX_LENGTH'] / 1000000, 3);
-			$fields['LIMIT_SUM_DIMENSION']       = $item['LIMITS']['DIMENSION_SUM'] ?: 0;
+			$fields['LIMIT_MAX_SHIPMENT_WEIGHT'] = isset($item['LIMITS']['MAX_SHIPMENT_WEIGHT']) ? $item['LIMITS']['MAX_SHIPMENT_WEIGHT'] : 0;
+			$fields['LIMIT_MAX_WEIGHT']          = isset($item['LIMITS']['MAX_WEIGHT'])          ? $item['LIMITS']['MAX_WEIGHT'] : 0;
+			$fields['LIMIT_MAX_LENGTH']          = isset($item['LIMITS']['MAX_LENGTH'])          ? $item['LIMITS']['MAX_LENGTH'] : 0;
+			$fields['LIMIT_MAX_WIDTH']           = isset($item['LIMITS']['MAX_WIDTH'])           ? $item['LIMITS']['MAX_WIDTH'] : 0;
+			$fields['LIMIT_MAX_HEIGHT']          = isset($item['LIMITS']['MAX_HEIGHT'])          ? $item['LIMITS']['MAX_HEIGHT'] : 0;
+			$fields['LIMIT_SUM_DIMENSION']       = isset($item['LIMITS']['DIMENSION_SUM'])       ? $item['LIMITS']['DIMENSION_SUM'] : 0;
+			$fields['LIMIT_MAX_VOLUME']          = round($fields['LIMIT_MAX_WIDTH'] * $fields['LIMIT_MAX_HEIGHT'] * $fields['LIMIT_MAX_LENGTH'] / 1000000, 3);
 		}
 		
 		$exists = $this->getTable()->getByCode($fields['CODE']);
@@ -179,10 +179,22 @@ class Agent
 	 */
 	protected function normalizeAddress($address, $short = false)
 	{
+		$address = array_replace_recursive([
+			'INDEX'       => '',
+			'REGION_NAME' => '',
+			'CITY_NAME'   => '',
+			'STREET'      => '',
+			'STREET_ABBR' => '',
+			'HOUSE_NO'    => '',
+			'BUILDING'    => '',
+			'STRUCTURE'   => '',
+			'OWNERSHIP'   => '',
+		], $address);
+
 		$ret = array();
 
-		if ($short == false) {
-			$ret[] = $address['INDEX'];
+		if ($short === false) {
+			$ret[] = isset($address['INDEX']) ? $address['INDEX'] : '';
 
 			if ($address['REGION_NAME'] != $address['CITY_NAME']) {
 				$ret[] = $address['REGION_NAME'];
@@ -298,7 +310,7 @@ class Agent
 
 			foreach ($extraServices as $extraService) {
 				if ($extraService['ES_CODE'] == 'НПП') {
-					return $extraService['PARAMS']['VALUE'] ?: 9999999999;
+					return isset($extraService['PARAMS']['VALUE']) ? $extraService['PARAMS']['VALUE'] : 9999999999;
 				}
 			}
 		}

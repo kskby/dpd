@@ -1,12 +1,8 @@
-<?php<?php
+<?php
 require __DIR__ .'/../src/autoload.php';
 
-$config = new \Ipol\DPD\Config\Config([
-    'KLIENT_NUMBER'   => '',
-    'KLIENT_KEY'      => '',
-    'KLIENT_CURRENCY' => 'RUB',
-    'IS_TEST'         => true,
-]);
+$options = require __DIR__ .'/config.php';
+$config  = new \Ipol\DPD\Config\Config($options);
 
 $shipment = new \Ipol\DPD\Shipment($config);
 $shipment->setSender('Россия', 'Москва', 'г. Москва');
@@ -72,9 +68,9 @@ $order->senderTerminalCode = '009M';
 $order->receiverName = 'Наименование получателя';
 $order->receiverFio = 'ФИО получателя';
 $order->receiverPhone = 'Телефон получателя';
-$order->receiverTerminalCode = '012K';
+$order->receiverTerminalCode = 'M11';
 
-$order->pickupDate = '2017-12-02';
+$order->pickupDate = '2018-11-14';
 $order->pickupTimePeriod = '9-18';
 
 $result = $order->dpd()->create();

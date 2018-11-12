@@ -11,6 +11,9 @@ use \Ipol\DPD\Utils;
  */
 class Agent
 {
+	/**
+	 * @deprecated
+	 */
 	protected static $cityFilePath = 'ftp://intergration:xYUX~7W98@ftp.dpd.ru:22/integration/GeographyDPD_20171125.csv';
 
 	protected $api;
@@ -55,38 +58,60 @@ class Agent
 	}
 
 	/**
-	 * Обновляет список всех городов обслуживания
+	 * @return string
+	 */
+	public function getCityFilePath()
+	{
+		return $this->getTable()->getConfig()->get('DATA_DIR') .'/cities.csv';
+
+		// return 'ftp://intergration:xYUX~7W98@ftp.dpd.ru:22/integration/GeographyDPD_20171125.csv';
+	}
+
+	/**
+	 * Обновляет список городов обслуживания
 	 * 
 	 * @param integer $position Стартовая позиция курсора в файле
+	 * @param array   $countries Массив стран для обработки
 	 * 
-	 * @return void
+	 * @return true|integer
 	 */
-	public function loadAll($position = 0)
+	public function loadAll($position = 0, $countries = ['RU', 'KZ', 'BY', 'UA'])
 	{
 		ini_set('auto_detect_line_endings', true);
+		
+		$start_time = time();
+		$countries  = array_intersect_key([
+				'RU' => 'россия', 
+				'KZ' => 'казахстан', 
+				'BY' => 'беларусь', 
+				'UA' => 'украина'
+			], array_flip($countries)
+		);
 
-		static::$cityFilePath = $this->getTable()->getConfig()->get('DATA_DIR') .'/cities.csv';
-
-		$file = fopen(self::$cityFilePath, 'r');
+		$file = fopen($this->getCityFilePath(), 'r');
 		if ($file === false) {
 			return false;
 		}
 
 		fseek($file, $position ?: 0);
-		$start_time = time();
-
-		$i = 0;
 
 		while(($row = fgetcsv($file, null, ';')) !== false) {
-			if (Utils::isNeedBreak($start_time) && 1 != 1) {
+			if (Utils::isNeedBreak($start_time)) {
 				return ftell($file);
 			}
 
-			$region = explode(',', $row[4]);
+			$country = $row[5];
+			$region  = explode(',', $row[4]);
+
+			if (!empty($countries) 
+				&& !in_array(mb_strtolower($country), $countries)
+			) {
+				continue;
+			}
 
 			$this->loadLocation(
 				$this->getNormalizer()->normilize(
-					$country    = $row[5],
+					$country,
 					$regionName = end($region),
 					$cityName   = $row[2] .' '. $row[3]
 				),
@@ -98,8 +123,6 @@ class Agent
 					'ORIG_NAME_LOWER' => mb_strtolower($origName),
 				]
 			);
-
-			echo ++$i, "\r";
 		}
 
 		return true;
@@ -108,18 +131,19 @@ class Agent
 	/**
 	 * Обновляет города в которых доступен НПП
 	 * 
-	 * @param string $position Стартовая позиция импорта
+	 * @param string $position  Стартовая позиция импорта
+	 * @param array  $countries Массив стран для обработки
 	 * 
-	 * @return void
+	 * @return true|string
 	 */
-	public function loadCashPay($position = 'RU:0')
+	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY', 'UA'])
 	{
 		$position   = explode(':', $position ?: 'RU:0');
 		$index      = 0;
 		$started    = false;
 		$start_time = time();
 
-		foreach(['RU', 'KZ', 'BY', 'UA'] as $countryCode) {
+		foreach($countries as $countryCode) {
 			if ($position[0] != $countryCode && $started === false) {
 				continue;
 			}

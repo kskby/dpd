@@ -194,8 +194,7 @@ class Order
 		try {
 			$this->getDB()->getPDO()->beginTransaction();
 
-			$result = $this->model->save();
-			if (!$result) {
+			if (!$this->model->save()) {
 				throw new \Exception('Failed to save data model');
 			}
 
@@ -228,7 +227,6 @@ class Order
 					'CARGO_WEIGHT'          => $this->model->cargoWeight,
 					'CARGO_VOLUME'          => $this->model->cargoVolume,
 					'CARGO_REGISTERED'      => $this->model->cargoRegistered == 'Y',
-					// 'CARGO_VALUE'           => $this->model->cargoValue,
 					'CARGO_CATEGORY'        => $this->model->cargoCategory,
 					'DELIVERY_TIME_PERIOD'  => $this->model->deliveryTimePeriod,
 					'RECEIVER_ADDRESS'      => $this->getReceiverInfo(),
@@ -238,25 +236,31 @@ class Order
 			);
 
 			$ret = $this->getApi()->getService('order')->createOrder($parms);
+			
 			if (!in_array($ret['STATUS'], array(static::STATUS_OK, static::STATUS_PENDING))) {
 				$error = 'DPD: '. nl2br($ret['ERROR_MESSAGE']);
 				throw new \Exception($error);
 			}
 
-			$this->model->orderNum = $ret['ORDER_NUM'] ?: '';
+			$this->model->orderNum    = isset($ret['ORDER_NUM']) ? $ret['ORDER_NUM'] : '';
 			$this->model->orderStatus = $ret['STATUS'];
 
-			$result = $this->model->save();
-			if (!$result) {
-				throw new \Exception('Failed to save dpd order num');
+			if (!$this->model->save()) {
+				throw new \Exception('Не удалось сохранить результат');
 			}
+			
+			$result->setData([
+				'ORDER_NUM'    => $this->model->orderNum,
+				'ORDER_STATUS' => $this->model->orderStatus,
+			]);
 
 			$this->getDB()->getPDO()->commit();
+
 		} catch (\Exception $e) {
 			$this->getDB()->getPDO()->rollBack();
 
-			$result = new Result();
-			$result->addError(new Error($e->getMessage()));		
+			$error = new Error($e->getMessage());
+			$result->addError($error);
 		}
 
 		return $result;
@@ -273,8 +277,9 @@ class Order
 
 		try {
 			$ret = $this->getApi()->getService('order')->cancelOrder($this->model->orderId, $this->model->orderNum, $this->model->pickupDate);
+			
 			if (!$ret) {
-				throw new \Exception('Failed to cancel dpd order');
+				throw new \Exception('Не удалось отменить DPD заказ');
 			}
 
 			if (!in_array($ret['STATUS'], array(self::STATUS_CANCEL, self::STATUS_CANCEL_PREV))) {
@@ -285,10 +290,13 @@ class Order
 			$this->model->orderStatus = self::STATUS_CANCEL;
 			$this->model->pickupDate = '';
 
-			$result = $this->model->save();
+			if (!$this->model->save()) {
+				throw new \Exception('Не удалось сохранить результат');
+			}
 
 		} catch (\Exception $e) {
-			$result->addError(new Error($e->getMessage()));
+			$error = new Error($e->getMessage());
+			$result->addError();
 		}
 
 		return $result;
@@ -301,18 +309,32 @@ class Order
 	 */
 	public function checkStatus()
 	{
-		$ret = $this->getApi()->getService('order')->getOrderStatus($this->model->orderId, $this->model->pickupDate);
-
-		if ($ret) {
-			$this->model->orderNum = $ret['ORDER_NUM'] ?: '';
-			$this->model->orderError = $ret['ERROR_MESSAGE'];
-			$this->model->orderStatus = $ret['STATUS'];
-
-			return $this->model->save();
-		}
-
 		$result = new Result();
-		$result->addError(new Error('Не удалось получить данные о статусе заказа'));
+
+		try {
+			$ret = $this->getApi()->getService('order')->getOrderStatus($this->model->orderId, $this->model->pickupDate);
+
+			if (!$ret) {
+				throw new \Exception('Не удалось получить данные о статусе заказа');
+			}
+
+			$this->model->orderNum    = isset($ret['ORDER_NUM'])     ? $ret['ORDER_NUM'] : '';
+			$this->model->orderError  = isset($ret['ERROR_MESSAGE']) ? $ret['ERROR_MESSAGE'] : '';
+			$this->model->orderStatus = isset($ret['STATUS'])        ? $ret['STATUS'] : '';
+
+			if (!$this->model->save()) {
+				throw new \Exception('Не удалось сохранить результат');
+			}
+
+			$result->setData([
+				'ORDER_NUM'    => $this->model->orderNum,
+				'ORDER_ERROR'  => $this->model->orderError,
+				'ORDER_STATUS' => $this->model->orderStatus,
+			]);
+		} catch(\Exception $e) {
+			$error = new Error($e->getMessage());
+			$result->addError();
+		}
 
 		return $result; 
 	}
@@ -332,14 +354,15 @@ class Order
 			}
 
 			$ret = $this->getApi()->getService('label-print')->createLabelFile($this->model->orderNum, $count, $fileFormat, $pageSize);
-			if (!$ret) {
+			
+			if (!is_array($ret) || !isset($ret['FILE'])) {
 				throw new \Exception('Не удалось получить файл');
 			} elseif (isset($ret['ORDER'])) {
 				throw new \Exception($ret['ORDER']['ERROR_MESSAGE']);
 			}
 
 			$fileName = 'sticker.'. strtolower($fileFormat);
-			$result = $this->saveFile('labelFile', $fileName, $ret['FILE']);
+			$result   = $this->saveFile('labelFile', $fileName, $ret['FILE']);
 
 		} catch (\Exception $e) {
 			$result->addError(new Error($e->getMessage()));
@@ -363,15 +386,17 @@ class Order
 			}
 
 			$ret = $this->getApi()->getService('order')->getInvoiceFile($this->model->orderNum);
-			if (!$ret || !isset($ret['FILE'])) {
+			
+			if (!is_array($ret) || !isset($ret['FILE'])) {
 				throw new \Exception('Не удалось получить файл');
 			}
 
 			$fileName = 'invoice.pdf';
-			$result = $this->saveFile('invoiceFile', $fileName, $ret['FILE']);
+			$result   = $this->saveFile('invoiceFile', $fileName, $ret['FILE']);
 
 		} catch (\Exception $e) {
-			$result->addError(new Error($e->getMessage()));
+			$error = new Error($e->getMessage());
+			$result->addError($error);
 		}
 
 		return $result;
@@ -396,6 +421,7 @@ class Order
 			}
 
 			$ret = file_put_contents($dirName . $fileName , $fileContent);
+			
 			if ($ret === false) {
 				throw new \Exception('Не удалось записать файл');
 				return $result;
@@ -403,10 +429,12 @@ class Order
 
 			$this->model->{$fieldToSave} = $this->getSaveDir() . $fileName;
 
-			$result = $this->model->save();
-			if ($result->isSuccess()) {
-				$result->setData(array('file' => $this->model->{$fieldToSave}));
+			if (!$this->model->save()) {
+				throw new \Exception('Не удалось сохранить результат');
 			}
+
+			$result->setData(['file' => $this->model->{$fieldToSave}]);
+			
 		} catch (\Exception $e) {
 			$result->addError(new Error($e->getMessage()));
 		}
@@ -432,7 +460,7 @@ class Order
 
 		$created = true;
 		if (!is_dir($dirNameAbs)) {
-			$created = mkdir($dirNameAbs, BX_DIR_PERMISSIONS, true);
+			$created = mkdir($dirNameAbs, 0755, true);
 		}
 
 		if (!$created) {

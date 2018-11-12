@@ -57,7 +57,7 @@ class Table extends AbstractTable
 	 * 
 	 * @return array|false
 	 */
-	public static function getByCityId($cityId, $select = '*')
+	public function getByCityId($cityId, $select = '*')
 	{
 		return $this->findFirst([
 			'select' => $select,

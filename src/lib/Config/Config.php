@@ -8,7 +8,7 @@ class Config implements ConfigInterface
 {
     protected $options = [
         /** Директория для хранения файлов */
-        'UPLOAD_DIR' => '',
+        'UPLOAD_DIR' => __DIR__ .'/../../../data/upload/',
 
         /** Директория с данными */
         'DATA_DIR' => __DIR__ .'/../../../data/',
