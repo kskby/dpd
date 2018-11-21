@@ -1,7 +1,7 @@
 create table IF NOT EXISTS b_ipol_dpd_terminal (
 	ID int not null auto_increment,
 
-	LOCATION_ID int not null default '0',
+	LOCATION_ID varchar(255) null,
 	
 	CODE varchar(255) null,
 	NAME varchar(255) null,
