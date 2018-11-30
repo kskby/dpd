@@ -231,9 +231,17 @@ class Order
 					'DELIVERY_TIME_PERIOD'  => $this->model->deliveryTimePeriod,
 					'RECEIVER_ADDRESS'      => $this->getReceiverInfo(),
 					'EXTRA_SERVICE'         => $this->getExtraServices(),
-					'UNIT_LOAD'             => $this->getUnits(),
+
+					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
+					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
 				),
 			);
+
+			foreach ($parms['ORDER'] as $k => $v) {
+				if (is_null($v)) {
+					unset($parms['ORDER'][$k]);
+				}
+			}
 
 			$ret = $this->getApi()->getService('order')->createOrder($parms);
 			
@@ -593,6 +601,10 @@ class Order
 			$ret['OGD'] = array('esCode' => 'ОЖД', 'param' => array('name' => 'reason_delay', 'value' => $this->model->ogd));
 		}
 
+		if ($this->model->npp == 'Y' && !$this->isToRussia()) {
+			$ret['NPP'] = array('esCode' => 'НПП', 'param' => array('name' => 'sum_npp', 'value' => $this->model->sumNpp));
+		}
+
 		return array_values($ret);
 	}
 
@@ -655,5 +667,19 @@ class Order
 		}
 
 		return $ret;
+	}
+
+	/**
+	 * Проверяет идет ли доставка в Россию
+	 * 
+	 * @return boolean
+	 */
+	protected function isToRussia()
+	{
+		$location = $this->model->getShipment()->getReceiver();
+
+		return (isset($location['COUNTRY_CODE']) && mb_strtoupper($location['COUNTRY_CODE']) == 'RU')
+			|| mb_strtolower($location['COUNTRY_NAME']) == 'россия'
+		;
 	}
 }
