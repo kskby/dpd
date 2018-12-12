@@ -110,6 +110,11 @@ class Table extends AbstractTable
 			'ORDER_ITEMS'            => null,
 			'PAY_SYSTEM_ID'          => null,
 			'PERSONE_TYPE_ID'        => null,
+			'PAYMENT_TYPE'           => null,
+			'SENDER_EMAIL'           => '',
+			'RECEIVER_EMAIL'         => '',
+			'SENDER_NEED_PASS'       => 'N',
+			'RECEIVER_NEED_PASS'     => 'N',
 		];
     }
 

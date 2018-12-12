@@ -104,6 +104,16 @@ class Order
 	const STATUS_NEW_CLIENT       = 'NewOrderByClient';
 
 	/**
+	 * Оплата у получатела налом
+	 */
+	const PAYMENT_TYPE_OUP = 'ОУП';
+
+	/**
+	 * Оплата у отправителя наличными
+	 */
+	const PAYMENT_TYPE_OUO = 'ОУО';
+
+	/**
 	 * @var \Ipol\DPD\DB\Order\Model
 	 */
 	protected $model;
@@ -217,6 +227,7 @@ class Order
 					'SENDER_ADDRESS'     => $this->getSenderInfo(),
 					'PICKUP_TIME_PERIOD' => $this->model->pickupTimePeriod,
 					'REGULAR_NUM'        => $this->getConfig()->get('SENDER_REGULAR_NUM', ''),
+					'PAYER'              => $this->model->paymentType == static::PAYMENT_TYPE_OUP ? '1001028502' : null,
 				)),
 
 				'ORDER' => array(
@@ -231,7 +242,10 @@ class Order
 					'DELIVERY_TIME_PERIOD'  => $this->model->deliveryTimePeriod,
 					'RECEIVER_ADDRESS'      => $this->getReceiverInfo(),
 					'EXTRA_SERVICE'         => $this->getExtraServices(),
-
+					'PAYMENT_TYPE'          => in_array($this->model->paymentType, [static::PAYMENT_TYPE_OUP, static::PAYMENT_TYPE_OUO])
+						? $this->model->paymentType
+						: null
+					,
 					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
 					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
 				),
@@ -491,6 +505,8 @@ class Order
 			'NAME'          => $this->model->senderName,
 			'CONTACT_FIO'   => $this->model->senderFio,
 			'CONTACT_PHONE' => $this->model->senderPhone,
+			'CONTACT_EMAIL' => $this->model->senderEmail,
+			'NEED_PASS'     => $this->model->senderNeedPass == 'Y' ? 1 : 0,
 		);
 
 		if ($this->model->getShipment()->getSelfPickup()) {
@@ -527,6 +543,9 @@ class Order
 			'NAME'          => $this->model->receiverName,
 			'CONTACT_FIO'   => $this->model->receiverFio,
 			'CONTACT_PHONE' => $this->model->receiverPhone,
+			'CONTACT_EMAIL' => $this->model->receiverEmail,
+			'NEED_PASS'     => $this->model->receiverNeedPass == 'Y' ? 1 : 0,
+			'INSTRUCTIONS'  => $this->model->receiverComment,
 		);
 
 		if ($this->model->getShipment()->getSelfDelivery()) {

@@ -82,5 +82,11 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	ORDER_ITEMS text null,
 	PAY_SYSTEM_ID int null,
 	PERSONE_TYPE_ID int null,
-	CURRENCY varchar(255) null
+	CURRENCY varchar(255) null,
+
+	PAYMENT_TYPE varchar(255) null,
+	SENDER_EMAIL varchar(50) DEFAULT NULL,
+	RECEIVER_EMAIL varchar(50) DEFAULT NULL,
+	SENDER_NEED_PASS char(1) DEFAULT 'N',
+	RECEIVER_NEED_PASS char(1) DEFAULT 'N'
 );
