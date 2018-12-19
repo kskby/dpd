@@ -10,9 +10,6 @@ spl_autoload_register(function ( $className ) {
         if (is_readable($filename) && file_exists($filename))
         {
             require_once $filename;
-        } else {
-            var_dump($filename);
-            die;
         }
     }
 });
