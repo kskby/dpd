@@ -243,10 +243,15 @@ class Shipment
 	 * @param integer $itemsPrice        стоимость товаров входящих в отправку
 	 * @param array   $defaultDimensions массив с габаритами по умолчанию
 	 */
-	public function setItems($items, $itemsPrice = 0, $defaultDimensions = array())
+	public function setItems($items, $itemsPrice = null, $defaultDimensions = array())
 	{
 		$this->orderItems      = $items;
-		$this->orderItemsPrice = $itemsPrice;
+		$this->orderItemsPrice = $itemsPrice != null 
+			? $itemsPrice
+			: array_reduce($items, function($ret, $item) {
+				return $ret + $item['PRICE'] * $item['QUANTITY'];
+			  }, 0)
+		;
 		$this->dimensions      = $this->calcShipmentDimensions($items, $defaultDimensions);
 
 		return $this;
