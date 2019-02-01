@@ -58,7 +58,7 @@ class Agent
 			}
 
 			if (Utils::isNeedBreak($start_time)) {
-				return $index;
+				return [$index, sizeof($items)];
 			}
 
 			$this->loadTerminal($item);
@@ -95,7 +95,10 @@ class Agent
 				}
 
 				if (Utils::isNeedBreak($start_time)) {
-					return sprintf('%s:%s', $countryCode, $index);
+					return [
+						sprintf('%s:%s', $countryCode, $index),
+						sizeof($items)
+					];
 				}
 
 				$this->loadTerminal($item);

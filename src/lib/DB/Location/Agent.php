@@ -97,7 +97,10 @@ class Agent
 
 		while(($row = fgetcsv($file, null, ';')) !== false) {
 			if (Utils::isNeedBreak($start_time)) {
-				return ftell($file);
+				return [
+					ftell($file),
+					filesize(self::$cityFilePath)
+				];
 			}
 
 			$country = $row[5];
@@ -157,7 +160,10 @@ class Agent
 				}
 
 				if (Utils::isNeedBreak($start_time)) {
-					return sprintf('%s:%s', $countryCode, $index);
+					return [
+						sprintf('%s:%s', $countryCode, $index),
+						sizeof($arCities)
+					];
 				}
 
 				$this->loadLocation(
