@@ -101,8 +101,13 @@ class Soap extends \SoapClient implements ClientInterface
 
 		$ret = json_encode($ret);
 		$ret = json_decode($ret, true);
-		$ret = $ret['return'];
-		$ret = $this->convertDataFromService($ret, $keys);		
+
+		if (array_key_exists('return', $ret)) {
+			$ret = $ret['return'];
+			$ret = $this->convertDataFromService($ret, $keys);
+		} else {
+			$ret = [];
+		}
 
 		return $ret;
 	}
