@@ -98,7 +98,7 @@ class Agent
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),
-					filesize(self::$cityFilePath)
+					filesize($this->getCityFilePath())
 				];
 			}
 
