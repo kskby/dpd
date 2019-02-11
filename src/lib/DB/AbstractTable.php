@@ -194,12 +194,10 @@ abstract class AbstractTable implements TableInterface
             isset($parms['limit'])      ? "LIMIT {$parms['limit']}"      : ''
         );
 
-        $query = $this->getPDO()->prepare($sql);
-
-        return $query->execute($parms['bind'])
-            ? $query
-            : false
-        ;
+        $query  = $this->getPDO()->prepare($sql);
+        $result = isset($parms['bind']) ? $query->execute($parms['bind']) : $query->execute();
+        
+        return $result ? $query : false;
     }
 
     /**
