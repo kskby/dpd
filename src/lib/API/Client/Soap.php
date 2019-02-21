@@ -3,6 +3,7 @@ namespace Ipol\DPD\API\Client;
 
 use \Ipol\DPD\API\User\UserInterface;
 use \Ipol\DPD\Utils;
+use \Symfony\Component\Cache\Simple\FilesystemCache;
 
 /**
  * Реализация SOAP клиента для работы с API
@@ -24,6 +25,20 @@ class Soap extends \SoapClient implements ClientInterface
 	);
 
 	protected $initError = false;
+
+	/**
+	 * Кэш
+	 *
+	 * @var \Symfony\Component\Cache\Simple\FilesystemCache
+	 */
+	protected $cache = null;
+
+	/**
+	 * Время жизни кэша
+	 *
+	 * @var integer
+	 */
+	protected $cache_time = 86400;
 
 	/**
 	 * Конструктор класса
@@ -81,32 +96,40 @@ class Soap extends \SoapClient implements ClientInterface
 	 */
 	public function invoke($method, array $args = array(), $wrap = 'request', $keys = false)
 	{
-		$parms   = array_merge($args, array('auth' => $this->auth));
-		$request = $wrap ? array($wrap => $parms) : $parms;
-		$request = $this->convertDataForService($request);
-
-		// $cache_id = serialize($request) . ($keys ? serialize($keys) : '');
-		// $cache_path = '/'. IPOLH_DPD_MODULE .'/api/'. $method;
-
 		if ($this->initError) {
 			throw new \Exception($this->initError);
 		}
+		
+		$parms     = array_merge($args, array('auth' => $this->auth));
+		$request   = $wrap ? array($wrap => $parms) : $parms;
+		$request   = $this->convertDataForService($request);
 
-		$ret = $this->$method($request);
+		$cache     = $this->cache();
+		$cache_key = 'api.'. $method .'.'. md5(serialize($request) . ($keys ? serialize($keys) : ''));
 
-		// hack return binary data
-		if ($ret && isset($ret->return->file)) {
-			return array('FILE' => $ret->return->file);
-		}
+		if (!$cache || !$cache->has($cache_key)) {
+			$ret = $this->$method($request);
 
-		$ret = json_encode($ret);
-		$ret = json_decode($ret, true);
+			// hack return binary data
+			if ($ret && isset($ret->return->file)) {
+				return array('FILE' => $ret->return->file);
+			}
 
-		if (array_key_exists('return', $ret)) {
-			$ret = $ret['return'];
-			$ret = $this->convertDataFromService($ret, $keys);
+			$ret = json_encode($ret);
+			$ret = json_decode($ret, true);
+
+			if (array_key_exists('return', $ret)) {
+				$ret = $ret['return'];
+				$ret = $this->convertDataFromService($ret, $keys);
+			} else {
+				$ret = [];
+			}
+
+			if ($cache) {
+				$cache->set($cache_key, $ret);
+			}
 		} else {
-			$ret = [];
+			$ret = $cache->get($cache_key);
 		}
 
 		return $ret;
@@ -119,7 +142,15 @@ class Soap extends \SoapClient implements ClientInterface
 	 */
 	protected function cache()
 	{
-		return null;
+		if ($this->cache === null) {
+			if (class_exists(FilesystemCache::class)) {
+				$this->cache = new FilesystemCache('', $this->cache_time, __DIR__ .'/../../../../data/cache/');
+			} else {
+				$this->cache = false;
+			}
+		}
+
+		return $this->cache;
 	}
 
 	/**

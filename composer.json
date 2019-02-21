@@ -1,5 +1,5 @@
 {
-    "name": "ipol/dpd",
+    "name": "ipol/dpd.sdk",
     "description": "",
     "version": "1.0.0",
     "license": "MIT",
@@ -9,10 +9,8 @@
         "dpd soap"
     ],
     "require": {
-        "php": ">= 5.4"
-    },
-    "require-dev": {
-        "phpdocumentor/phpdocumentor": "~2.8.0"
+        "php": ">= 5.4",
+        "symfony/cache": "^3.4"
     },
     "autoload": {
         "psr-4": {
