@@ -10,7 +10,7 @@
     ],
     "require": {
         "php": "^7.1.3",
-        "symfony/cache": "4.3.x-dev"
+        "symfony/cache": "dev-master"
     },
     "autoload": {
         "psr-4": {
