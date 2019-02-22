@@ -17,6 +17,23 @@ require_once 'path/to/dpd.sdk/src/autoload.php';
 
 ```
 
+#### Установка через composer
+Добавьте в composer.json проекта следующие строки
+
+```json
+"repositories": [
+  {
+    "type": "vcs",
+    "url": "https://bitbucket.org/DPDinRussia/dpd.sdk";
+  }
+]
+```
+
+после этого станет доступным установка модуля через composer
+```bash
+composer require ipol/dpd.sdk
+```
+
 Обязательно, для того чтобы расчет стоимости работал, необходимо произвести импорт начальных данных. 
 Пример загрузчика находится в папке `examples/load_locations.php` внутри архива.
 
