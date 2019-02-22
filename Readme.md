@@ -9,6 +9,9 @@ Client SDK - SDK для быстрой разработки клиентских
 * PDO-SQLite
 
 ### Установка
+Установить SDK можно двумя способами
+
+#### Установка из архива
 Для установки скачайте [tar.gz](https://bitbucket.org/DPDinRussia/dpd.sdk/get/master.tar.gz) или [zip](https://bitbucket.org/DPDinRussia/dpd.sdk/get/master.zip), распакуйте его и подключите файл `autoload.php` в Вашем проекте. 
 
 ```php
@@ -16,6 +19,8 @@ Client SDK - SDK для быстрой разработки клиентских
 require_once 'path/to/dpd.sdk/src/autoload.php';
 
 ```
+
+После этого перейдите в папку SDK и запустите комманду ```composer install``` которая загрузит все зависимости проекта
 
 #### Установка через composer
 Добавьте в composer.json проекта следующие строки
@@ -29,7 +34,7 @@ require_once 'path/to/dpd.sdk/src/autoload.php';
 ]
 ```
 
-после этого станет доступным установка модуля через composer
+после этого выполните добавление SDK в Ваш проект
 ```bash
 composer require ipol/dpd.sdk:dev-master
 ```
