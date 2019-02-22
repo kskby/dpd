@@ -31,7 +31,7 @@ require_once 'path/to/dpd.sdk/src/autoload.php';
 
 после этого станет доступным установка модуля через composer
 ```bash
-composer require ipol/dpd.sdk
+composer require ipol/dpd.sdk:dev-master
 ```
 
 Обязательно, для того чтобы расчет стоимости работал, необходимо произвести импорт начальных данных. 
