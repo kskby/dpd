@@ -113,13 +113,21 @@ class Config implements ConfigInterface
      * 
      * @return mixed
      */
-    public function get($option, $defaultValue = null)
+    public function get($option, $defaultValue = null, $subKey = null)
     {
-        if (isset($this->options[$option])) {
-            return $this->options[$option];
+        if (!isset($this->options[$option])) {
+            return $defaultValue;
         }
 
-        return $defaultValue;
+        if (isset($subKey) && is_array($this->options[$option])) {
+            if (isset($this->options[$option][$subKey])) {
+                return $this->options[$option][$subKey];
+            }
+
+            return $defaultValue;
+        }
+
+        return $this->options[$option];
     }
 
     /**
