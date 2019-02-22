@@ -39,6 +39,7 @@ require_once 'path/to/dpd.sdk/src/autoload.php';
 composer require ipol/dpd.sdk:dev-master
 ```
 
+#### После установки
 Обязательно, для того чтобы расчет стоимости работал, необходимо произвести импорт начальных данных. 
 Пример загрузчика находится в папке `examples/load_locations.php` внутри архива.
 
