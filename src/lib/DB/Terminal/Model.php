@@ -7,7 +7,7 @@ use Ipol\DPD\Shipment;
 /**
  * Модель одной записи таблицы терминалов
  */
-class Model extends BaseModel
+class Model extends BaseModel implements \JsonSerializable
 {
 	/**
 	 * Проверяет может ли терминал принять посылку
@@ -94,5 +94,22 @@ class Model extends BaseModel
 				|| array_sum([$shipment->getWidth(), $shipment->getHeight(), $shipment->getLength()]) <= $this->fields['LIMIT_SUM_DIMENSION']
 			)
 		;
+	}
+
+	public function jsonSerialize()
+	{
+		return [
+			'CODE'                           => $this->fields['ID'],
+			'NAME'                           => $this->fields['NAME'],
+			'TYPE'                           => $this->fields['PARCEL_SHOP_TYPE'],
+			'LAT'                            => $this->fields['LATITUDE'],
+			'LON'                            => $this->fields['LONGITUDE'],
+			'ADDRESS_FULL'                   => $this->fields['ADDRESS_FULL'],
+			'SCHEDULE_SELF_PICKUP'           => $this->fields['SCHEDULE_SELF_PICKUP'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PICKUP']) : [],
+			'SCHEDULE_SELF_DELIVERY'         => $this->fields['SCHEDULE_SELF_DELIVERY'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_DELIVERY']) : [],
+			'SCHEDULE_SELF_PAYMENT_CASH'     => $this->fields['SCHEDULE_SELF_PAYMENT_CASH'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PAYMENT_CASH']) : [],
+			'SCHEDULE_SELF_PAYMENT_CASHLESS' => $this->fields['SCHEDULE_SELF_PAYMENT_CASHLESS'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PAYMENT_CASHLESS']) : [],
+			'ADDRESS_DESCR'                  => $this->fields['ADDRESS_DESCR'],
+		];
 	}
 }
