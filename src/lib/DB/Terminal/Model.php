@@ -107,8 +107,8 @@ class Model extends BaseModel implements \JsonSerializable
 			'ADDRESS_FULL'                   => $this->fields['ADDRESS_FULL'],
 			'SCHEDULE_SELF_PICKUP'           => $this->fields['SCHEDULE_SELF_PICKUP'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PICKUP']) : [],
 			'SCHEDULE_SELF_DELIVERY'         => $this->fields['SCHEDULE_SELF_DELIVERY'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_DELIVERY']) : [],
-			'SCHEDULE_SELF_PAYMENT_CASH'     => $this->fields['SCHEDULE_SELF_PAYMENT_CASH'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PAYMENT_CASH']) : [],
-			'SCHEDULE_SELF_PAYMENT_CASHLESS' => $this->fields['SCHEDULE_SELF_PAYMENT_CASHLESS'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PAYMENT_CASHLESS']) : [],
+			'SCHEDULE_PAYMENT_CASH'          => $this->fields['SCHEDULE_PAYMENT_CASH'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASH']) : [],
+			'SCHEDULE_PAYMENT_CASHLESS'      => $this->fields['SCHEDULE_PAYMENT_CASHLESS'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASHLESS']) : [],
 			'ADDRESS_DESCR'                  => $this->fields['ADDRESS_DESCR'],
 		];
 	}

@@ -422,8 +422,8 @@ class Shipment
 	public function setPaymentMethod($personTypeId, $paySystemId)
 	{
 		$this->paymentMethod = array(
-			'PERSON_TYPE_ID' => $personTypeId,
-			'PAY_SYSTEM_ID'  => $paySystemId,
+			'PERSONE_TYPE_ID' => $personTypeId,
+			'PAY_SYSTEM_ID'   => $paySystemId,
 		);	
 
 		return $this;
@@ -508,14 +508,14 @@ class Shipment
 		if (empty($payment['PAY_SYSTEM_ID'])) {
 			$useDefault = $this->getConfig()->get('COMMISSION_NPP_DEFAULT', []);
 
-			return isset($useDefault[$payment['PERSON_TYPE_ID']])
-				&& $useDefault[$payment['PERSON_TYPE_ID']]
+			return isset($useDefault[$payment['PERSONE_TYPE_ID']])
+				&& $useDefault[$payment['PERSONE_TYPE_ID']]
 			;
 		}
 		
-		$arPaymentIds = $this->getConfig()->get('COMMISSION_NPP_PAYMENT', [], $payment['PERSON_TYPE_ID']);
-		$arPaymentIds = isset($arPaymentIds[$payment['PERSON_TYPE_ID']]) 
-			? $arPaymentIds[$payment['PERSON_TYPE_ID']] 
+		$arPaymentIds = $this->getConfig()->get('COMMISSION_NPP_PAYMENT', [], $payment['PERSONE_TYPE_ID']);
+		$arPaymentIds = isset($arPaymentIds[$payment['PERSONE_TYPE_ID']]) 
+			? $arPaymentIds[$payment['PERSONE_TYPE_ID']] 
 			: []
 		;
 		
