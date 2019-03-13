@@ -89,12 +89,18 @@ class Table extends AbstractTable
 	 */
 	public function getByCode($code, $select = '*')
 	{
-		return $this->findFirst([
+		$data = $this->findFirst([
 			'select' => $select,
 			'where'  => 'CODE = :code',
 			'bind'   => [
 				':code' => $code,
 			]
 		]);
+
+		if ($data) {
+			return static::makeModel($data);
+		}
+
+		return false;
 	}
 }
