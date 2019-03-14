@@ -6,50 +6,38 @@ $config  = new \Ipol\DPD\Config\Config($options);
 
 $shipment = new \Ipol\DPD\Shipment($config);
 $shipment->setSender('Россия', 'Москва', 'г. Москва');
-$shipment->setReceiver('Россия', 'Москва', 'г. Москва');
+$shipment->setReceiver('Россия', 'Краснодарский', 'г. Краснодар');
 
 $shipment->setSelfPickup(false);
-
 $shipment->setItems([
     [
-        'NAME'       => 'Товар 1',
+        'NAME'       => 'Canon EOS 5D',
         'QUANTITY'   => 1,
-        'PRICE'      => 1000,
-        'VAT_RATE'   => 18,
+        'PRICE'      => 180,
+        'VAT_RATE'   => 0,
         'WEIGHT'     => 1000,
         'DIMENSIONS' => [
             'LENGTH' => 200,
             'WIDTH'  => 100,
-            'HEIGHT' => 50,
-        ]
-    ],
-
-    [
-        'NAME'       => 'Товар 2',
-        'QUANTITY'   => 1,
-        'PRICE'      => 1000,
-        'VAT_RATE'   => 18,
-        'WEIGHT'     => 1000,
-        'DIMENSIONS' => [
-            'LENGTH' => 350,
-            'WIDTH'  => 70,
             'HEIGHT' => 200,
         ]
     ],
 
     [
-        'NAME'       => 'Товар 3',
-        'QUANTITY'   => 1,
-        'PRICE'      => 1000,
+        'NAME'       => 'iPhone',
+        'QUANTITY'   => 2,
+        'PRICE'      => 399,
         'VAT_RATE'   => 18,
-        'WEIGHT'     => 1000,
+        'WEIGHT'     => 20,
         'DIMENSIONS' => [
-            'LENGTH' => 220,
-            'WIDTH'  => 100,
-            'HEIGHT' => 70,
+            'LENGTH' => 143.6,
+            'WIDTH'  => 70.9,
+            'HEIGHT' => 7.7,
         ]
     ],
-], 3000);
+], 978);
+
+$shipment->setPaymentMethod(1, 'cod');
 
 $tariffs = [
     'courier' => $shipment->setSelfDelivery(true)->calculator()->calculate(),
@@ -75,21 +63,34 @@ $terminals = array_filter($terminals, function($terminal) use ($shipment) {
     <link rel="stylesheet" type="text/css" href="../../widgets-map/src/css/style.css">
 
     <script>
+        var inited = false;
+
         $(function() {
             'use strict';
 
-            $('#dpd-map')
-                .dpdMap({}, <?= json_encode([
+            if (inited) {
+                var data = <?= json_encode([
                     'tariffs'   => $tariffs,
                     'terminals' => $terminals
-                ]) ?>)
+                ]) ?>;
 
-                .on('dpd.map.terminal.select', function(e, terminal, widget) {
-                    console.log(terminal);
+                $('#dpd-map').dpdMap('reload', data);
+            } else {
+                $('#dpd-map')
+                    .dpdMap({}, <?= json_encode([
+                        'tariffs'   => $tariffs,
+                        'terminals' => $terminals
+                    ]) ?>)
 
-                    alert(terminal.CODE)
-                })
-            ;
+                    .on('dpd.map.terminal.select', function(e, terminal, widget) {
+                        console.log(terminal);
+
+                        alert(terminal.CODE)
+                    })
+                ;
+
+                inited = true;
+            }
         })
     </script>
 
