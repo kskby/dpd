@@ -47,6 +47,7 @@ class Calculator
 	public function AllowedTariffList()
 	{
 		$disableTariffs = (array) $this->getConfig()->get('TARIFF_OFF');
+
 		return array_diff_key(static::TariffList(), array_flip($disableTariffs));
 	}
 
@@ -279,9 +280,9 @@ class Calculator
 
 		$payment = $this->getShipment()->getPaymentMethod();
 
-		$useCommission     = $this->getConfig()->get('COMMISSION_NPP_CHECK',   false, $payment['PERSON_TYPE_ID']);
-		$commissionPercent = $this->getConfig()->get('COMMISSION_NPP_PERCENT', 2,     $payment['PERSON_TYPE_ID']);
-		$minCommission     = $this->getConfig()->get('COMMISSION_NPP_MINSUM',  0,     $payment['PERSON_TYPE_ID']);
+		$useCommission     = $this->getConfig()->get('COMMISSION_NPP_CHECK',   false, $payment['PERSONE_TYPE_ID']);
+		$commissionPercent = $this->getConfig()->get('COMMISSION_NPP_PERCENT', 2,     $payment['PERSONE_TYPE_ID']);
+		$minCommission     = $this->getConfig()->get('COMMISSION_NPP_MINSUM',  0,     $payment['PERSONE_TYPE_ID']);
 
 		if (!$useCommission) {
 			return $tariff;
@@ -323,6 +324,7 @@ class Calculator
 	public function getListFromService($parms)
 	{
 		$tariffs = $this->api->getService('calculator')->getServiceCost($parms);
+
 		return array_intersect_key($tariffs, $this->AllowedTariffList());
 	}
 
