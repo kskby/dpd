@@ -99,7 +99,8 @@ class Model extends BaseModel implements \JsonSerializable
 	public function jsonSerialize()
 	{
 		return [
-			'CODE'                           => $this->fields['ID'],
+			'ID'                             => $this->fields['ID'],
+			'CODE'                           => $this->fields['CODE'],
 			'NAME'                           => $this->fields['NAME'],
 			'TYPE'                           => $this->fields['PARCEL_SHOP_TYPE'],
 			'LAT'                            => $this->fields['LATITUDE'],
