@@ -514,10 +514,6 @@ class Shipment
 		}
 		
 		$arPaymentIds = $this->getConfig()->get('COMMISSION_NPP_PAYMENT', [], $payment['PERSONE_TYPE_ID']);
-		$arPaymentIds = isset($arPaymentIds[$payment['PERSONE_TYPE_ID']]) 
-			? $arPaymentIds[$payment['PERSONE_TYPE_ID']] 
-			: []
-		;
 		
 		return in_array($payment['PAY_SYSTEM_ID'], $arPaymentIds);
 	}

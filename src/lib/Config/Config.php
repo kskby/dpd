@@ -119,7 +119,7 @@ class Config implements ConfigInterface
             return $defaultValue;
         }
 
-        if (isset($subKey) && is_array($this->options[$option])) {
+        if (isset($subKey) && is_array($this->options[$option])) {           
             if (isset($this->options[$option][$subKey])) {
                 return $this->options[$option][$subKey];
             }
