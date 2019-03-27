@@ -43,7 +43,7 @@ class Agents
 			'bind'  => [
 				':order_status' => \Ipol\DPD\Order::STATUS_PENDING
 			]
-		])->fetchAll(PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, $table->getModelClass(), $table);
+		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), $table);
 		
 		foreach ($orders as $order) {
 			$order->dpd()->checkStatus();
