@@ -116,7 +116,10 @@ class Model extends BaseModel
 	 */
 	public function setOrderItems($items)
 	{
-		$this->fields['ORDER_ITEMS'] = \serialize($items);
+		$this->fields['ORDER_ITEMS'] = is_string($items)
+			? $items
+			: \serialize($items)
+		;
 
 		return $this;
 	}
@@ -128,7 +131,9 @@ class Model extends BaseModel
 	 */
 	public function getOrderItems()
 	{
-		return \unserialize($this->fields['ORDER_ITEMS']);
+		return is_string($this->fields['ORDER_ITEMS'])
+			? \unserialize($this->fields['ORDER_ITEMS'])
+			: $this->fields['ORDER_ITEMS'];
 	}
 
 	/**
