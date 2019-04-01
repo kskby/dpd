@@ -550,6 +550,7 @@ class Shipment
 		$defaultDimensions['VOLUME'] = $defaultDimensions['WIDTH'] * $defaultDimensions['HEIGHT'] * $defaultDimensions['LENGTH'];
 		$needCheckWeight     = false;
 		$needCheckDimensions = false;
+		$needCheckVolume     = false;
 
 
 		if ($items) {
