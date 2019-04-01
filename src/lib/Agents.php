@@ -37,13 +37,13 @@ class Agents
 	{
 		$table  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order');
 		$orders = $table->find([
-			'where' => 'ORDER_STATUS = :order_status',
+			'where' => 'ORDER_STATUS = :order_status or 1 = 1',
 			'order' => 'ORDER_DATE_STATUS ASC, ORDER_DATE_CREATE ASC',
 			'limit' => '0,2',
 			'bind'  => [
 				':order_status' => \Ipol\DPD\Order::STATUS_PENDING
 			]
-		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), $table);
+		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), [$table]);
 		
 		foreach ($orders as $order) {
 			$order->dpd()->checkStatus();
