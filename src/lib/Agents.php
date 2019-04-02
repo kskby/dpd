@@ -1,7 +1,7 @@
 <?php
 namespace Ipol\DPD;
 
-use \Ipol\DPD\API\User as API;
+use \Ipol\DPD\API\User\User as API;
 use \Ipol\DPD\Config\ConfigInterface;
 
 /**
@@ -37,7 +37,7 @@ class Agents
 	{
 		$table  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order');
 		$orders = $table->find([
-			'where' => 'ORDER_STATUS = :order_status or 1 = 1',
+			'where' => 'ORDER_STATUS = :order_status',
 			'order' => 'ORDER_DATE_STATUS ASC, ORDER_DATE_CREATE ASC',
 			'limit' => '0,2',
 			'bind'  => [
@@ -67,7 +67,7 @@ class Agents
 				return;
 			}
 
-			$states = (array) $ret['STATES'];
+			$states = isset($ret['STATES']) ? $ret['STATES'] : [];
 			$states = array_key_exists('DPD_ORDER_NR', $states) ? array($states) : $states;
 
 			// сортируем статусы по их времени наступления
