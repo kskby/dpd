@@ -141,7 +141,6 @@ class Agent
 	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY'])
 	{
 		$position   = explode(':', $position ?: 'RU:0');
-		$index      = 0;
 		$started    = false;
 		$start_time = time();
 
@@ -151,6 +150,7 @@ class Agent
 			}
 
 			$started  = true;
+			$index    = 0;
 			$arCities = $this->getApi()->getService('geography')->getCitiesCashPay($countryCode);
 
 			foreach ($arCities as $arCity) {
