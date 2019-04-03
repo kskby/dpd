@@ -132,7 +132,7 @@ class Connection implements ConnectionInterface
 
     protected function init()
     {
-        if (strtolower($this->getDriver()) == 'mysql') {
+        if (strtoupper($this->getDriver()) == 'MYSQL') {
             $this->getPDO()->query('SET NAMES UTF8');
         }
     }
