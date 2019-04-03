@@ -369,7 +369,6 @@ class Order
 	public function getLabelFile($count = 1, $fileFormat = 'PDF', $pageSize = 'A5')
 	{
 		$result = new Result();
-
 		try {
 			if (empty($this->model->orderNum)) {
 				throw new \Exception('Нельзя напечатать наклейки. Заказ не создан в системе DPD!');
@@ -478,7 +477,13 @@ class Order
 		}
 
 		$dirName    = rtrim($this->getConfig()->get('UPLOAD_DIR'), '/') .'/'. $this->model->id .'/';
-		$dirNameAbs = $_SERVER['DOCUMENT_ROOT'] . $dirName;
+		$dirNameAbs = $dirName;
+
+		if (!empty($_SERVER['DOCUMENT_ROOT']) 
+			&& strpos($dirName, $_SERVER['DOCUMENT_ROOT']) === 0
+		) {
+			$dirName = substr($dirName, strlen($_SERVER['DOCUMENT_ROOT']));
+		}
 
 		$created = true;
 		if (!is_dir($dirNameAbs)) {

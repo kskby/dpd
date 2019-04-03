@@ -120,6 +120,11 @@ class Soap extends \SoapClient implements ClientInterface
 
 			if (array_key_exists('return', $ret)) {
 				$ret = $ret['return'];
+
+				if ($keys && array_intersect((array) $keys, array_keys($ret))) {
+					$ret = [$ret];
+				}
+
 				$ret = $this->convertDataFromService($ret, $keys);
 			} else {
 				$ret = [];
@@ -205,20 +210,20 @@ class Soap extends \SoapClient implements ClientInterface
 		return $ret;
 	}
 
-	// public function __doRequest($request, $location, $action, $version, $one_way = 0)
-	// {
-	// 	$ret = parent::__doRequest($request, $location, $action, $version, $one_way);
+	public function __doRequest($request, $location, $action, $version, $one_way = 0)
+	{
+		$ret = parent::__doRequest($request, $location, $action, $version, $one_way);
 
-	// 	if (!is_dir(__DIR__ .'/logs/')) {
-	// 		mkdir(__DIR__ .'/logs/', 0777);
-	// 	}
+		if (!is_dir(__DIR__ .'/logs/')) {
+			mkdir(__DIR__ .'/logs/', 0777);
+		}
 
-	// 	file_put_contents(__DIR__ .'/logs/'. md5($location) .'.logs', ''
-	// 		. 'LOCATION: '. PHP_EOL . $location . PHP_EOL
-	// 		. 'REQUEST : '. PHP_EOL . $request  . PHP_EOL
-	// 		. 'ANSWER  : '. PHP_EOL . $ret      . PHP_EOL
-	// 	);
+		file_put_contents(__DIR__ .'/logs/'. md5($location) .'.logs', ''
+			. 'LOCATION: '. PHP_EOL . $location . PHP_EOL
+			. 'REQUEST : '. PHP_EOL . $request  . PHP_EOL
+			. 'ANSWER  : '. PHP_EOL . $ret      . PHP_EOL
+		);
 
-	// 	return $ret;	
-	// }	
+		return $ret;	
+	}	
 }

@@ -88,7 +88,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	SENDER_EMAIL varchar(50) DEFAULT NULL,
 	RECEIVER_EMAIL varchar(50) DEFAULT NULL,
 	SENDER_NEED_PASS char(1) DEFAULT 'N',
-	RECEIVER_NEED_PASS char(1) DEFAULT 'N'
+	RECEIVER_NEED_PASS char(1) DEFAULT 'N',
 
 	primary key (ID)
 );
