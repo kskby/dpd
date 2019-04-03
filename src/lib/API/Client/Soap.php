@@ -148,7 +148,7 @@ class Soap extends \SoapClient implements ClientInterface
 	protected function cache()
 	{
 		if ($this->cache === null) {
-			if (class_exists(FilesystemCache::class)) {
+			if (class_exists(FilesystemCache::class) && $this->cache_time > 0) {
 				$this->cache = new FilesystemCache('', $this->cache_time, __DIR__ .'/../../../../data/cache/');
 			} else {
 				$this->cache = false;
