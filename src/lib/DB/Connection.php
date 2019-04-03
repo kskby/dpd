@@ -56,6 +56,8 @@ class Connection implements ConnectionInterface
         $this->pdo      = $dbConfig['PDO'];
 
         self::$instance = $this;
+
+        $this->init();
     }
 
     /**
@@ -126,5 +128,12 @@ class Connection implements ConnectionInterface
 		}
 
 		throw new \Exception("Data mapper for {$tableName} not found");
+    }
+
+    protected function init()
+    {
+        if (strtolower($this->getDriver()) == 'mysql') {
+            $this->getPDO()->query('SET NAMES UTF8');
+        }
     }
 }
