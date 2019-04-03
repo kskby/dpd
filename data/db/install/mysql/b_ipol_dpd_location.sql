@@ -22,5 +22,6 @@ create table IF NOT EXISTS b_ipol_dpd_location (
 	primary key (ID)
 );
 
-CREATE INDEX IF NOT EXISTS b_ipol_dpd_location_crc ON b_ipol_dpd_location (CITY_NAME, REGION_NAME, COUNTRY_NAME);
-CREATE INDEX IF NOT EXISTS b_ipol_dpd_location_search_text ON b_ipol_dpd_location (ORIG_NAME_LOWER);
+CREATE INDEX b_ipol_dpd_location_city ON  (CITY_ID);
+CREATE INDEX b_ipol_dpd_location_crc ON b_ipol_dpd_location (CITY_NAME, REGION_NAME, COUNTRY_NAME);
+CREATE INDEX b_ipol_dpd_location_search_text ON b_ipol_dpd_location (ORIG_NAME_LOWER);
