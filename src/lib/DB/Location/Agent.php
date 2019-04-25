@@ -94,6 +94,8 @@ class Agent
 
 		fseek($file, $position ?: 0);
 
+		$index = 0;
+
 		while(($row = fgetcsv($file, null, ';')) !== false) {
 			if (Utils::isNeedBreak($start_time)) {
 				return [
