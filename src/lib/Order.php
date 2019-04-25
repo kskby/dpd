@@ -639,58 +639,35 @@ class Order
 	 */
 	protected function getUnits()
 	{
-		$items = $this->model->getShipment()->getItems();
-
-		$orderAmount = $this->model->price;
-		$sumNpp      = $this->model->npp == 'Y' ? $this->model->sumNpp : 0;
-		$cargoValue  = $this->model->cargoValue ?: 0;
-
 		$currencyFrom = $this->model->currency;
 		$currencyTo   = $this->getApi()->getClientCurrency();
 		$currencyDate = $this->model->orderDate ?: date('Y-m-d H:i:s');
+		$converter    = $this->getCurrencyConverter();
 
-		$ret = array();
-		foreach ($items as $item) {
-			$withOutVat    = 1;
-			$vatRate       = '';
-			$declaredValue = 0;
-			$nppAmount     = 0;
-			
-			if ($item['VAT_RATE'] 
-				&& $item['VAT_RATE'] != 'Без НДС'
-			) {
-				$withOutVat = 0;
-				$vatRate    = $item['VAT_RATE'];
-			}
+		return array_map(function($item) use ($currencyFrom, $currencyTo, $currencyDate, $converter) {
+			$item['VAT'] = $item['VAT'] == 'Без НДС' ? '' : $item['VAT'];
 
-			$amount         = $item['PRICE'];
-			$percentInOrder = $amount * 100 / $orderAmount;
-			$declaredValue  = $cargoValue > 0 ? $cargoValue * $percentInOrder / 100 : 0;
-			$nppAmount      = $sumNpp > 0 ? $sumNpp * $percentInOrder / 100 : 0;
-			
-			if ($this->getCurrencyConverter()) {
-				$declaredValue = $this->getCurrencyConverter()->convert($declaredValue, $currencyFrom, $currencyTo, $currencyDate);
-				$nppAmount     = $this->getCurrencyConverter()->convert($nppAmount, $currencyFrom, $currencyTo, $currencyDate);
+			if ($converter) {
+				$item['CARGO'] = $converter->convert($item['CARGO'], $currencyFrom, $currencyTo, $currencyDate);
+				$item['NPP']   = $converter->convert($item['NPP'], $currencyFrom, $currencyTo, $currencyDate);
 			} elseif ($currencyFrom != $currencyTo) {
 				throw new \Exception('Currency converter is not defined');
 			}
 
-			$ret[] = array_merge(
+			return array_merge(
 				[
 					'descript'       => $item['NAME'],
-					'declared_value' => round($declaredValue, 2),
-					'npp_amount'     => round($nppAmount, 2),
+					'declared_value' => $item['CARGO'],
+					'npp_amount'     => $item['NPP'],
 					'count'          => $item['QUANTITY'],
 				],
 
-				$withOutVat ? ['without_vat' => $withOutVat] : [],
-				$vatRate    ? ['vat_percent' => $vatRate]    : [],
+				empty($item['VAT']) ? [] : ['vat_percent' => $item['VAT']],
+				empty($item['VAT']) ? ['without_vat' => 1] : [],
 
 				[]
 			);
-		}
-
-		return $ret;
+		}, $this->model->unitLoads);
 	}
 
 	/**

@@ -88,9 +88,9 @@ class Table extends AbstractTable
 			'RECEIVER_COMMENT'       => null,
 			'PRICE'                  => null,
 			'PRICE_DELIVERY'         => null,
-			'CARGO_VALUE'            => null,
+			// 'CARGO_VALUE'            => null,
 			'NPP'                    => 'N',
-			'SUM_NPP'                => null,
+			// 'SUM_NPP'                => null,
 			'CARGO_REGISTERED'       => 'N',
 			'SMS'                    => null,
 			'EML'                    => null,
@@ -115,6 +115,9 @@ class Table extends AbstractTable
 			'RECEIVER_EMAIL'         => '',
 			'SENDER_NEED_PASS'       => 'N',
 			'RECEIVER_NEED_PASS'     => 'N',
+			
+			'UNIT_LOADS'             => null,
+			'USE_CARGO_VALUE'        => 'N',
 		];
     }
 

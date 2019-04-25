@@ -80,6 +80,7 @@ class Normalizer
         return [
             'CITY_NAME' => $city,
             'CITY_ABBR' => $abbr,
+            'IS_CITY'   => in_array($abbr, $this->getCityAbbrList()) ? 1 : 0,
         ];
     }
 
@@ -123,7 +124,7 @@ class Normalizer
 
         foreach ($abbrList as $abbr) {
             $abbr       = trim($abbr);
-            $abbrRegexp = '/\b'. preg_quote($abbr) .'\b/sUui';
+            $abbrRegexp = '~\b'. preg_quote($abbr) .'\b~sUui';
 
             if (preg_match($abbrRegexp, $string)) {
                 $string = preg_replace($abbrRegexp, '', $string);
@@ -228,6 +229,26 @@ class Normalizer
             'аул', 
             'станица',
             'ст-ца',
+            'снт',
+            'рзд',
+            'сл',
+            'дп',
+            'х',
+            'жилрайон',
+            'тер',
+            'ж/д_ст',
+            'тер сдт',
+            'нп',
+            'у',
+            'массив',
+            'автодорога',
+            'м',
+            'сл',
+            'городок',
+            'дск',
+            'платф',
+            'починок',
+            'промзона',
         ];
     }
 
@@ -238,6 +259,8 @@ class Normalizer
      */
     protected function getCityAnalogs()
     {
+        return [];
+        
         return [
             // город
             'Москва' => [

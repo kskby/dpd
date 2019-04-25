@@ -131,8 +131,8 @@ class Agent
 
 			'SCHEDULE_SELF_PICKUP'      => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfPickup')),
 			'SCHEDULE_SELF_DELIVERY'    => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfDelivery')),
-			'SCHEDULE_PAYMENT_CASH'     => $paymentCash                                                                          = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'Payment')),
-			'SCHEDULE_PAYMENT_CASHLESS' => $paymentCashLess                                                                      = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentByBankCard')),
+			'SCHEDULE_PAYMENT_CASH'     => $paymentCash     = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'Payment')),
+			'SCHEDULE_PAYMENT_CASHLESS' => $paymentCashLess = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentByBankCard')),
 
 			'LATITUDE'                  => $item['GEO_COORDINATES']['LATITUDE'],
 			'LONGITUDE'                 => $item['GEO_COORDINATES']['LONGITUDE'],
@@ -146,8 +146,9 @@ class Agent
 			'LIMIT_MAX_VOLUME'          => 0,
 			'LIMIT_SUM_DIMENSION'       => 0,
 
-			'NPP_AMOUNT'                => $maxNppAmount                                                                         = $this->getMaxNppAmount($item),
+			'NPP_AMOUNT'                => $maxNppAmount = $this->getMaxNppAmount($item),
 			'NPP_AVAILABLE'             => (((bool) $maxNppAmount) && (((bool) $paymentCash) || ((bool) $paymentCashLess))) ? 'Y': 'N',
+			'SERVICES'                  => '|'. implode('|', static::getServices($item)) .'|',
 		];
 
 		if (isset($item['LIMITS'])) {
@@ -319,5 +320,31 @@ class Agent
 		}
 
 		return 0;
+	}
+
+	protected function getServices($item)
+	{
+		$ret = [];
+		$extraServices = array_key_exists('ES_CODE', $item['EXTRA_SERVICE']) ? array($item['EXTRA_SERVICE']) : $item['EXTRA_SERVICE'];
+
+		foreach ($extraServices as $extraService) {
+			$code = $extraService['ES_CODE'];
+
+			if ($code == 'НПП') {
+				continue;
+			}
+
+			if (!empty($extraService['PARAMS'])) {
+				$params = explode(',', $extraService['PARAMS']['VALUE']);
+
+				foreach ($params as $param) {
+					$ret[] = $code .'_'. trim($param);
+				}
+			} else {
+				$ret[] = $extraService['ES_CODE'];
+			}
+		}
+
+		return $ret;		
 	}
 }

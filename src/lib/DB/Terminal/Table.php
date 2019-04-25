@@ -60,6 +60,7 @@ class Table extends AbstractTable
 			'LIMIT_SUM_DIMENSION'       => 0,
 			'NPP_AMOUNT'                => 0,		
 			'NPP_AVAILABLE'             => 'N',
+			'SERVICES'                  => null,
 		];
 	}
 

@@ -32,5 +32,7 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	NPP_AMOUNT double not null default '0',
 	NPP_AVAILABLE char(1) not null default 'N',
 
+	SERVICES text null,
+
 	primary key (ID)
 );
