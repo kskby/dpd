@@ -206,7 +206,7 @@ abstract class AbstractTable implements TableInterface
         ;
         
         $sql = sprintf('SELECT %s FROM %s %s %s %s',
-            isset($parms['select'])     ? $parms['select']               : '*',
+            isset($parms['select'])     ? $parms['select'] : implode(',', array_keys($this->getFields())),
             $this->getTableName(),
             isset($parms['where'])      ? "WHERE {$parms['where']}" : '',
             isset($parms['order'])      ? "ORDER BY {$parms['order']}"   : '',
