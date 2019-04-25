@@ -62,19 +62,21 @@ class Agents
 		}
 
 		do {
-			$ret = API::getInstanceByConfig($config)->getService('tracking')->getStatesByClient();
+			$service = API::getInstanceByConfig($config)->getService('event-tracking');
+			$ret = $service->getEvents();
+			
 			if (!$ret) {
 				return;
 			}
 
-			$states = isset($ret['STATES']) ? $ret['STATES'] : [];
+			$states = isset($ret['EVENT']) ? $ret['EVENT'] : [];
 			$states = array_key_exists('DPD_ORDER_NR', $states) ? array($states) : $states;
 
 			// сортируем статусы по их времени наступления
 			uasort($states, function($a, $b) {
 				if ($a['CLIENT_ORDER_NR'] == $b['CLIENT_ORDER_NR']) {
-					$time1 = strtotime($a['TRANSITION_TIME']);
-					$time2 = strtotime($b['TRANSITION_TIME']);
+					$time1 = strtotime($a['EVENT_DATE']);
+					$time2 = strtotime($b['EVENT_DATE']);
 
 					return $time1 - $time2;
 				}
@@ -84,26 +86,81 @@ class Agents
 
 			foreach ($states as $state) {
 				$order = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order')->getByOrderId($state['CLIENT_ORDER_NR']);
+				
 				if (!$order) {
 					continue;
 				}
 
-				$status = $state['NEW_STATE'];
+				$status     = $state['EVENT_CODE'] ?: 'TYPE_CODE';
+				$statusTime = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
+				$number     = false;
+				$message    = false;
 				
-				if ($order->isSelfDelivery()
-					&& $status == \Ipol\DPD\Order::STATUS_TRANSIT_TERMINAL
-					&& $order->receiverTerminalCode == $state['TERMINAL_CODE']
-				) {
-					$status = \Ipol\DPD\Order::STATUS_ARRIVE;
+				switch($status)
+				{
+					case 'OfferCreate':
+					case 'OfferUpdating':
+					case 'OfferWaiting':
+						continue 2;
+
+					case 'OfferCancelled':
+					case 'OrderCancelled':
+						$status = Order::STATUS_CANCEL;
+					break;
+
+					case 'OrderCreate':
+					case 'OrderWaiting':
+						$status = Order::STATUS_OK;
+					break;
+
+					case 'OrderPickup':
+						$status = Order::STATUS_DEPARTURE;
+					break;
+
+					case 'OrderArrivedInRF':
+					case 'OrderOnTerminal':
+					case 'OrderOnRoad':
+						$status = Order::STATUS_TRANSIT;
+					break;
+
+					case 'OrderReady':
+						$status = $order->isSelfDelivery() ? Order::STATUS_ARRIVE : Order::STATUS_TRANSIT_TERMINAL;
+					break;
+
+					case 'OrderDelivering':
+						$status = 'STATUS_COURIER';
+					break;
+
+					case 'OrderProblem':
+					case 'OrderDeliveryProblem':
+					case 'OrderProblem':
+					case 'OrderDeliveryProblem':
+						$status = Order::STATUS_PROBLEM;
+					break;
+
+					case 'OrderDied':
+						$status = Order::STATUS_NOT_DONE;
+					break;
+				}
+
+				$params = isset($state['parameter']['paramName'])
+					? [$state['parameter']]
+					: $state['parameter']
+				;
+
+				foreach ($params as $param) {
+					if ($param['PARAM_NAME'] == 'ORDER_NUMBER') {
+						$number = $param['VALUE'];
+					}
 				}
 
 				$order->setOrderStatus($status, $statusTime);
-				$order->orderNum = $state['DPD_ORDER_NR'] ?: $order->orderNum;
+				$order->orderNum = $number ?: $order->orderNum;
 				$order->save();
 			}
 
 			if ($ret['DOC_ID'] > 0) {
-				API::getInstanceByConfig($config)->getService('tracking')->confirm($ret['DOC_ID']);
+				$service->confirm($ret['DOC_ID']);
 			}
 		} while($ret['RESULT_COMPLETE'] != 1);
 	}
