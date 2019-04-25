@@ -105,6 +105,7 @@ class Model extends BaseModel
 			'SELF_PICKUP'   => $shipment->getSelfPickup(),
 			'SELF_DELIVERY' => $shipment->getSelfDelivery(),
 		];
+		$this->priceDelivery    = $this->getActualPriceDelivery();
 
 		return $this;
 	}
@@ -121,6 +122,8 @@ class Model extends BaseModel
 			: \serialize($items)
 		;
 
+		$this->reloadUnits();
+
 		return $this;
 	}
 
@@ -133,7 +136,18 @@ class Model extends BaseModel
 	{
 		return is_string($this->fields['ORDER_ITEMS'])
 			? \unserialize($this->fields['ORDER_ITEMS'])
-			: $this->fields['ORDER_ITEMS'];
+			: ($this->fields['ORDER_ITEMS'] ?: []);
+	}
+
+	/**
+	 * Выставляет вариант оплаты доставки
+	 *
+	 * @return void
+	 */
+	public function setPaymentType($value)
+	{
+		$this->fields['PAYMENT_TYPE'] = $value;
+		$this->reloadUnits();
 	}
 
 	/**
@@ -143,10 +157,216 @@ class Model extends BaseModel
 	 * 
 	 * @return self
 	 */
-	public function setNpp($npp)
+	public function setNpp($value)
 	{
-		$this->fields['NPP']     = $npp;
-		$this->fields['SUM_NPP'] = $npp == 'Y' ? $this->price : 0;
+		$this->fields['NPP'] = $value == 'Y' ? 'Y' : 'N';
+		$this->reloadUnits();
+
+		return $this;
+	}
+
+	/**
+	 * Возвращает сумму наложенного платежа
+	 *
+	 * @return float
+	 */
+	public function getSumNpp()
+	{
+		$ret = 0;
+
+		foreach ($this->unitLoads as $item) {
+			$ret += $item['QUANTITY'] * $item['NPP'];
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Устанавливает сумму наложенного платежа
+	 * 
+	 * @deprecated use setUnitLoads method
+	 */
+	public function setSumNpp($sum)
+	{
+		throw new \Exception('use setUnitLoads method for set npp sum');
+	}
+
+	/**
+	 * Выставляет флаг ОЦ
+	 * 
+	 * @return void
+	 */
+	public function setUseCargoValue($value)
+	{
+		$this->fields['USE_CARGO_VALUE'] = $value == 'Y' ? 'Y' : 'N';
+		$this->reloadUnits();
+	}
+
+	/**
+	 * Возвращает сумму наложенного платежа
+	 *
+	 * @return float
+	 */
+	public function getCargoValue()
+	{
+		$ret = 0;
+
+		foreach ($this->unitLoads as $item) {
+			$ret += $item['QUANTITY'] * $item['CARGO'];
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Устанавливает сумму ОЦ
+	 * 
+	 * @deprecated use setUnitLoads method
+	 */
+	public function setCargoValue($sum)
+	{
+		throw new \Exception('use setUnitLoads method for set cargo value');
+	}
+
+	/**
+	 * Устанавливает вложения заказа
+	 *
+	 * @param array $value
+	 * 
+	 * @return void
+	 */
+	public function setUnitLoads($value)
+	{	
+		if (!is_string($value)) {
+			$items      = [];
+			$isReplaced = true;
+
+			foreach ((array) $value as $k => $item) {
+				$item['QUANTITY'] = (int) $item['QUANTITY'];
+				
+				if (isset($item['CARGO'])) {
+					if ($this->fields['USE_CARGO_VALUE'] != 'Y') {
+						$item['CARGO'] = 0;
+					} else {
+						$item['CARGO'] = round($item['CARGO'], 2);
+					}
+				}
+				
+				if (isset($item['NPP'])) {
+					if ($this->fields['NPP'] != 'Y') {
+						$item['NPP'] = 0;
+					} else {
+						$item['NPP'] = round($item['NPP'], 2);
+					}
+				}
+
+				if ($this->paymentType != DpdOrder::PAYMENT_TYPE_OUP || $item['ID'] != 'DELIVERY') {
+					$items[$k]  = $item;
+				}
+
+				if (!isset($item['ID'])) {
+					$isReplaced = false;
+				}
+			}
+
+			if ($isReplaced) {
+				$units = $items;
+			} else {
+				$units = [];
+
+				foreach ($items as $id => $item) {
+					if (in_array($id, array_column($this->unitLoads, 'ID'))) {
+						foreach ($this->unitLoads as $curItem) {
+							if ((string) $curItem['ID'] !== (string) $id) {
+								continue;
+							}
+
+							$units[] = array_merge($curItem, $item);
+						}
+					} elseif (isset($item['ID'])) {
+						$units[] = $item;
+					}
+				}
+			}
+
+			$value = \serialize($units);
+		}
+
+		$this->fields['UNIT_LOADS'] = $value;
+
+		return $this;
+	}
+
+	/**
+	 * Возвращает вложения заказа
+	 *
+	 * @return array
+	 */
+	public function getUnitLoads()
+	{
+		return \is_string($this->fields['UNIT_LOADS'])
+			? \unserialize($this->fields['UNIT_LOADS'])
+			: ($this->fields['UNIT_LOADS'] ?: [])
+		;
+	}
+
+	/**
+	 * Перезаполняет вложения на основе состава заказа
+	 * 
+	 * @return void
+	 */
+	public function reloadUnits()
+	{
+		$this->unitLoads = array_merge(array_map(function($item) {
+			return [
+				'ID'       => isset($item['ID']) ? $item['ID'] : crc32($item['NAME']),
+				'NAME'     => $item['NAME'],
+				'QUANTITY' => $item['QUANTITY'],
+				'CARGO'    => $item['PRICE'],
+				'NPP'      => $item['PRICE'],
+				'VAT'      => $item['VAT_RATE'],
+			];
+		}, $this->orderItems), [
+			[
+				'ID'       => 'DELIVERY',
+				'NAME'     => 'Доставка',
+				'QUANTITY' => 1,
+				'CARGO'    => 0,
+				'NPP'      => $this->priceDelivery,
+				'VAT'      => '',
+			]
+		]);
+	}
+
+	/**
+	 * Устанавливает стоимость доставки
+	 *
+	 * @param float $value
+	 * 
+	 * @return self
+	 */
+	public function setPriceDelivery($value)
+	{
+		$this->fields['PRICE_DELIVERY'] = $value;
+		$this->reloadUnits();
+
+		return $this;
+	}
+
+	/**
+	 * Устанавливает тариф доставки
+	 *
+	 * @param $value
+	 * 
+	 * @return self
+	 */
+	public function setServiceCode($value)
+	{
+		$this->fields['SERVICE_CODE'] = $value;
+
+		if (!$this->priceDelivery) {
+			$this->priceDelivery = $this->getActualPriceDelivery();
+		}
 
 		return $this;
 	}
@@ -242,7 +462,11 @@ class Model extends BaseModel
 	 */
 	public function getTariffDelivery($forced = false)
 	{
-		return $this->getShipment($forced)->calculator()->calculateWithTariff($this->serviceCode, $this->currency);
+		if ($this->serviceCode) {
+			return $this->getShipment($forced)->calculator()->calculateWithTariff($this->serviceCode, $this->currency);
+		}
+
+		return false;
 	}
 
 	/**
@@ -253,7 +477,7 @@ class Model extends BaseModel
 	public function getActualPriceDelivery()
 	{
 		$tariff = $this->getTariffDelivery();
-		
+
 		if ($tariff) {
 			return $tariff['COST'];
 		}

@@ -32,7 +32,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	SENDER_FIO varchar(255) null,
 	SENDER_NAME varchar(255) null,
 	SENDER_PHONE varchar(20) null,
-	SENDER_LOCATION int(10) not null default 0,
+	SENDER_LOCATION varchar(255) not null,
 	SENDER_STREET varchar(50) null,
 	SENDER_STREETABBR varchar(10) null,
 	SENDER_HOUSE varchar(10) null,
@@ -46,7 +46,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	RECEIVER_FIO varchar(255) null,
 	RECEIVER_NAME varchar(255) null,
 	RECEIVER_PHONE varchar(20) null,
-	RECEIVER_LOCATION int(10) not null default 0,
+	RECEIVER_LOCATION varchar(255) not null,
 	RECEIVER_STREET varchar(50) null,
 	RECEIVER_STREETABBR varchar(10) null,
 	RECEIVER_HOUSE varchar(10) null,
@@ -88,5 +88,8 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	SENDER_EMAIL varchar(50) DEFAULT NULL,
 	RECEIVER_EMAIL varchar(50) DEFAULT NULL,
 	SENDER_NEED_PASS char(1) DEFAULT 'N',
-	RECEIVER_NEED_PASS char(1) DEFAULT 'N'
+	RECEIVER_NEED_PASS char(1) DEFAULT 'N',
+
+	UNIT_LOADS text null,
+	USE_CARGO_VALUE char(1) not null default 'N'
 );
