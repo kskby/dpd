@@ -129,6 +129,11 @@ class Order
 	protected $currencyConverter;
 
 	/**
+	 * @var string
+	 */
+	protected $sourceName;
+
+	/**
 	 * Конструктор класса
 	 * 
 	 * @param \Ipol\DPD\DB\Order\Model $model одна запись из таблицы
@@ -248,6 +253,10 @@ class Order
 					,
 					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
 					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
+					'EXTRA_PARAM' => array(
+						'NAME'  => 'source_of_order',
+						'VALUE' => $this->getSourceName(),
+					),
 				),
 			);
 
@@ -421,6 +430,30 @@ class Order
 		}
 
 		return $result;
+	}
+	
+	/**
+	 * Возвращает название источника
+	 *
+	 * @return string
+	 */
+	public function getSourceName()
+	{
+		return $this->sourceName ?: $this->getConfig()->get('SOURCE_NAME', 'SDK');
+	}
+
+	/**
+	 * Устанавливает название источника
+	 *
+	 * @param string $value
+	 * 
+	 * @return self
+	 */
+	public function setSourceName($value)
+	{
+		$this->sourceName = $value;
+
+		return $this;
 	}
 
 	/**
