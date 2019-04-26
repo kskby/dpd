@@ -75,7 +75,7 @@ class Agent
 	 * 
 	 * @return true|integer
 	 */
-	public function loadAll($position = 0, $countries = ['RU', 'KZ', 'BY'])
+	public function loadAll($position = 0, $countries = ['RU', 'KZ', 'BY', 'AM', 'KG'])
 	{
 		ini_set('auto_detect_line_endings', true);
 		
@@ -84,6 +84,8 @@ class Agent
 				'RU' => 'россия', 
 				'KZ' => 'казахстан', 
 				'BY' => 'беларусь', 
+				'AM' => 'армения',
+				'KG' => 'киргизия',
 			], array_flip($countries)
 		);
 
@@ -140,7 +142,7 @@ class Agent
 	 * 
 	 * @return true|string
 	 */
-	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY'])
+	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY', 'AM', 'KG'])
 	{
 		$position   = explode(':', $position ?: 'RU:0');
 		$started    = false;
