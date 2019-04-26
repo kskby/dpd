@@ -325,6 +325,11 @@ class Agent
 	protected function getServices($item)
 	{
 		$ret = [];
+
+		if (!isset($item['EXTRA_SERVICE'])) {
+			return $ret;
+		}
+
 		$extraServices = array_key_exists('ES_CODE', $item['EXTRA_SERVICE']) ? array($item['EXTRA_SERVICE']) : $item['EXTRA_SERVICE'];
 
 		foreach ($extraServices as $extraService) {
