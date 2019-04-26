@@ -80,7 +80,7 @@ class Agent
 		$started    = false;
 		$start_time = time();
 
-		foreach (['RU', 'KZ', 'BY'] as $countryCode) {
+		foreach (['RU', 'KZ', 'BY', 'AM', 'KG'] as $countryCode) {
 			if ($position[0] != $countryCode && $started === false) {
 				continue;
 			}
