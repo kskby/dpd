@@ -71,6 +71,9 @@ class Agents
 
 			$states = isset($ret['EVENT']) ? $ret['EVENT'] : [];
 			$states = array_key_exists('DPD_ORDER_NR', $states) ? array($states) : $states;
+			$states = array_filter($states, function($item) {
+				return isset($item['CLIENT_ORDER_NR']);
+			});
 
 			// сортируем статусы по их времени наступления
 			uasort($states, function($a, $b) {
@@ -81,8 +84,9 @@ class Agents
 					return $time1 - $time2;
 				}
 
-				return $a['CLIENT_ORDER_NR'] - $b['CLIENT_ORDER_NR'];
+				return strcmp($a['CLIENT_ORDER_NR'], $b['CLIENT_ORDER_NR']);
 			});
+
 
 			foreach ($states as $state) {
 				$order = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order')->getByOrderId($state['CLIENT_ORDER_NR']);
@@ -93,7 +97,7 @@ class Agents
 
 				$status     = $state['EVENT_CODE'] ?: 'TYPE_CODE';
 				$statusTime = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
-				$number     = false;
+				$number     = $state['DPD_ORDER_NR'];
 				$message    = false;
 				
 				switch($status)
@@ -141,11 +145,19 @@ class Agents
 					case 'OrderDied':
 						$status = Order::STATUS_NOT_DONE;
 					break;
+
+					case 'OrderWorkCompleted':
+						$status = Order::STATUS_DELIVERED;
+					break;
+
+					default:
+						continue 2;
+					break;
 				}
 
-				$params = isset($state['parameter']['paramName'])
-					? [$state['parameter']]
-					: $state['parameter']
+				$params = isset($state['PARAMETER']['PARAM_NAME'])
+					? [$state['PARAMETER']]
+					: $state['PARAMETER']
 				;
 
 				foreach ($params as $param) {
