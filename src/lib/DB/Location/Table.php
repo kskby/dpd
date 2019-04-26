@@ -26,16 +26,19 @@ class Table extends AbstractTable
 	public function getFields()
 	{
 		return [
-			'ID'           => null,
-			'COUNTRY_CODE' => null,
-			'COUNTRY_NAME' => null,
-			'REGION_CODE'  => null,
-			'REGION_NAME'  => null,
-			'CITY_CODE'    => null,
-			'CITY_NAME'    => null,
-			'CITY_ABBR'    => null,
-			'IS_CASH_PAY'  => null,
-			'CITY_ID'      => null,
+			'ID'              => null,
+			'COUNTRY_CODE'    => null,
+			'COUNTRY_NAME'    => null,
+			'REGION_CODE'     => null,
+			'REGION_NAME'     => null,
+			'CITY_ID'         => null,
+			'CITY_CODE'       => null,
+			'CITY_NAME'       => null,
+			'CITY_ABBR'       => null,
+			'IS_CASH_PAY'     => null,
+			'ORIG_NAME'       => null,
+			'ORIG_NAME_LOWER' => null,
+			'IS_CITY'         => null,
 		];
 	}
 
