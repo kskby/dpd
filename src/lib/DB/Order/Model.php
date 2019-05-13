@@ -276,13 +276,17 @@ class Model extends BaseModel
 					}
 				}
 
-				if ($this->paymentType != DpdOrder::PAYMENT_TYPE_OUP || $item['ID'] != 'DELIVERY') {
-					$items[$k]  = $item;
-				}
-
 				if (!isset($item['ID'])) {
 					$isReplaced = false;
 				}
+
+				if ($this->paymentType != DpdOrder::PAYMENT_TYPE_OUP 
+					|| !isset($item['ID'])
+					|| $item['ID'] != 'DELIVERY'
+				) {
+					$items[$k] = $item;
+				}
+
 			}
 
 			if ($isReplaced) {
