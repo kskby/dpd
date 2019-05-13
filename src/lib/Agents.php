@@ -64,7 +64,7 @@ class Agents
 		do {
 			$service = API::getInstanceByConfig($config)->getService('event-tracking');
 			$ret = $service->getEvents();
-			
+
 			if (!$ret) {
 				return;
 			}
@@ -95,65 +95,14 @@ class Agents
 					continue;
 				}
 
-				$status     = $state['EVENT_CODE'] ?: 'TYPE_CODE';
-				$statusTime = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
-				$number     = $state['DPD_ORDER_NR'];
-				$message    = false;
-				
-				switch($status)
-				{
-					case 'OfferCreate':
-					case 'OfferUpdating':
-					case 'OfferWaiting':
-						continue 2;
 
-					case 'OfferCancelled':
-					case 'OrderCancelled':
-						$status = Order::STATUS_CANCEL;
-					break;
-
-					case 'OrderCreate':
-					case 'OrderWaiting':
-						$status = Order::STATUS_OK;
-					break;
-
-					case 'OrderPickup':
-						$status = Order::STATUS_DEPARTURE;
-					break;
-
-					case 'OrderArrivedInRF':
-					case 'OrderOnTerminal':
-					case 'OrderOnRoad':
-						$status = Order::STATUS_TRANSIT;
-					break;
-
-					case 'OrderReady':
-						$status = $order->isSelfDelivery() ? Order::STATUS_ARRIVE : Order::STATUS_TRANSIT_TERMINAL;
-					break;
-
-					case 'OrderDelivering':
-						$status = 'STATUS_COURIER';
-					break;
-
-					case 'OrderProblem':
-					case 'OrderDeliveryProblem':
-					case 'OrderProblem':
-					case 'OrderDeliveryProblem':
-						$status = Order::STATUS_PROBLEM;
-					break;
-
-					case 'OrderDied':
-						$status = Order::STATUS_NOT_DONE;
-					break;
-
-					case 'OrderWorkCompleted':
-						$status = Order::STATUS_DELIVERED;
-					break;
-
-					default:
-						continue 2;
-					break;
-				}
+				$eventNumber = $state['EVENT_NUMBER'];
+				$eventCode   = $state['EVENT_CODE'] ?: $state['TYPE_CODE'];
+				$eventName   = $state['EVENT_NAME'];
+				$eventReason = $state['REASON_NAME'];
+				$eventTime   = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
+				$eventParams = [];
+				$number      = $state['DPD_ORDER_NR'];
 
 				$params = isset($state['PARAMETER']['PARAM_NAME'])
 					? [$state['PARAMETER']]
@@ -161,12 +110,14 @@ class Agents
 				;
 
 				foreach ($params as $param) {
-					if ($param['PARAM_NAME'] == 'ORDER_NUMBER') {
-						$number = $param['VALUE'];
-					}
+					$eventParams[$param['PARAM_NAME']] = $param['VALUE'];
 				}
 
-				$order->setOrderStatus($status, $statusTime);
+				if (isset($eventParams['ORDER_NUMBER'])) {
+					$number = $eventParams['ORDER_NUMBER'];
+				}
+
+				$order->setOrderStatusByCode($eventNumber, $eventTime, $eventReason, $eventParams);
 				$order->orderNum = $number ?: $order->orderNum;
 				$order->save();
 			}

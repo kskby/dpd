@@ -26,26 +26,42 @@ class Model extends BaseModel
 	 */
 	public static function StatusList()
 	{
-		return array(
-			DpdOrder::STATUS_NEW              => 'Новый заказ, еще не отправлялся в DPD',
-			DpdOrder::STATUS_OK               => 'Успешно создан',
-			DpdOrder::STATUS_PENDING          => 'Принят, но нуждается в ручной доработке сотрудником DPD',
-			DpdOrder::STATUS_ERROR            => 'Не принят, ошибка',
-			DpdOrder::STATUS_CANCEL           => 'Заказ отменен',
-			DpdOrder::STATUS_CANCEL_PREV      => 'Заказ отменен ранее',
-			DpdOrder::STATUS_NOT_DONE         => 'Заказ отменен в процессе доставки',
-			DpdOrder::STATUS_DEPARTURE        => 'Посылка находится на терминале приема отправления',
-			DpdOrder::STATUS_TRANSIT          => 'Посылка находится в пути (внутренняя перевозка DPD)',
+		return [
+			DpdOrder::STATUS_NEW => 'Новый заказ, еще не отправлялся в DPD',
+			DpdOrder::STATUS_OFFER_CREATE => 'Получена заявка',
+			DpdOrder::STATUS_OFFER_ERROR => '​В заявке присутствует ошибка',
+			DpdOrder::STATUS_OFFER_WAITING => '​Запрошены паспортные данные получателя',
+			DpdOrder::STATUS_OFFER_CANCEL => 'Отмена заявки',
+			DpdOrder::STATUS_OK => 'Заказ создан в DPD',
+			DpdOrder::STATUS_WAITING => 'Заказ ожидает дату приема',
+			DpdOrder::STATUS_DEPARTURE => 'Заказ принят у отправителя',
+			DpdOrder::STATUS_TRANSIT => 'Посылка находится в пути',
 			DpdOrder::STATUS_TRANSIT_TERMINAL => 'Посылка находится на транзитном терминале',
-			DpdOrder::STATUS_ARRIVE           => 'Посылка находится на терминале доставки',
-			DpdOrder::STATUS_COURIER          => 'Посылка выведена на доставку',
-			DpdOrder::STATUS_DELIVERED        => 'Посылка доставлена получателю',
-			DpdOrder::STATUS_LOST             => 'Посылка утеряна',
-			DpdOrder::STATUS_PROBLEM          => 'C посылкой возникла проблемная ситуация',
-			DpdOrder::STATUS_RETURNED         => 'Посылка возвращена с курьерской доставки',
-			DpdOrder::STATUS_NEW_DPD          => 'Оформлен новый заказ по инициативе DPD',
-			DpdOrder::STATUS_NEW_CLIENT       => 'Оформлен новый заказ по инициативе клиента',
-		);
+			DpdOrder::STATUS_ARRIVE_PICKUP => 'Заказ готов к выдаче на пункте',
+			DpdOrder::STATUS_ARRIVE_COURIER => '​Заказ готов к передаче курьеру для доставки',
+			DpdOrder::STATUS_COURIER => 'Посылка передана курьеру',
+			
+			DpdOrder::STATUS_TRANSIT_RETURN => 'Заказ следует по маршруту до терминала возврата',
+			DpdOrder::STATUS_ARRIVE_PICKUP_RETURN => 'Заказ на возврат готов к выдаче',
+			DpdOrder::STATUS_ARRIVE_COURIER_RETURN => '​Заказ на возврат готов к передаче курьеру для доставки',
+			DpdOrder::STATUS_COURIER_RETURN => 'Посылка передана курьеру для возврата',
+
+			DpdOrder::STATUS_CUSTOMS_CLEARANCE => 'Таможенное оформление в стране отправления',
+			DpdOrder::STATUS_END_CUSTOMS_CLEARANCE => '​Закончено таможенное оформление в стране отправления',
+			DpdOrder::STATUS_ARRIVED_IN_RF => 'Заказ прибыл в страну доставки',
+			DpdOrder::STATUS_END_CUSTOMS_CLEARANCE_IN_RF => 'Закончено таможенное оформление',
+			DpdOrder::STATUS_TRANSIT_SPEC => 'Передано спецперевозчику',
+
+			DpdOrder::STATUS_PROBLEM => 'C посылкой возникла проблемная ситуация',
+			DpdOrder::STATUS_DELIVERY_PROBLEM => 'Отказ от заказа в момент доставки',
+			DpdOrder::STATUS_NOT_DONE => 'Заказ не доставлен',
+			DpdOrder::STATUS_CANCEL => 'Заказ отменен',
+			DpdOrder::STATUS_REMOVED => '​Заказ утилизирован',
+			DpdOrder::STATUS_NOT_CLAIMED => '​Посылка не востребована',
+			DpdOrder::STATUS_LOST => 'Посылка утеряна',
+			DpdOrder::STATUS_DELIVERED => 'Посылка доставлена получателю',
+			DpdOrder::STATUS_RETURNED => 'Посылка возвращена с доставки',
+		];
 	}
 
 	/**
@@ -260,13 +276,17 @@ class Model extends BaseModel
 					}
 				}
 
-				if ($this->paymentType != DpdOrder::PAYMENT_TYPE_OUP || $item['ID'] != 'DELIVERY') {
-					$items[$k]  = $item;
-				}
-
 				if (!isset($item['ID'])) {
 					$isReplaced = false;
 				}
+
+				if ($this->paymentType != DpdOrder::PAYMENT_TYPE_OUP 
+					|| !isset($item['ID'])
+					|| $item['ID'] != 'DELIVERY'
+				) {
+					$items[$k] = $item;
+				}
+
 			}
 
 			if ($isReplaced) {
@@ -508,7 +528,7 @@ class Model extends BaseModel
 	 * 
 	 * @return self
 	 */
-	public function setOrderStatus($orderStatus, $orderStatusDate = false)
+	public function setOrderStatus($orderStatus, $orderStatusDate = false, $errorMessage = '')
 	{
 		if (empty($orderStatus)) {
 			return;
@@ -520,10 +540,81 @@ class Model extends BaseModel
 
 		$this->fields['ORDER_STATUS'] = $orderStatus;
 		$this->fields['ORDER_DATE_STATUS'] = $orderStatusDate ?: date('Y-m-d H:i:s');
+		$this->fields['ORDER_ERROR'] = $errorMessage;
 
 		if ($orderStatus == DpdOrder::STATUS_CANCEL) {
 			$this->fields['ORDER_DATE_CANCEL'] = $orderStatusDate ?: date('Y-m-d H:i:s');
 		}
+	}
+
+	/**
+	 * Устанавливает статус заказа по его коду
+	 * 
+	 * @param int    $eventCode
+	 * @param string $eventTime
+	 * 
+	 * @return self
+	 */
+	public function setOrderStatusByCode($eventCode, $eventTime, $eventReason = '', $eventParams = [])
+	{
+		$statuses = [
+			1001 => DpdOrder::STATUS_OFFER_CREATE,
+			1101 => DpdOrder::STATUS_OFFER_ERROR,
+			​1201 => DpdOrder::STATUS_OFFER_WAITING,
+			1301 => DpdOrder::STATUS_OFFER_CANCEL,
+			1401 => DpdOrder::STATUS_OK,
+			1501 => DpdOrder::STATUS_WAITING,
+			​1601 => DpdOrder::STATUS_DEPARTURE,
+			​1701 => DpdOrder::STATUS_ARRIVED_IN_RF,
+			​1801 => DpdOrder::STATUS_END_CUSTOMS_CLEARANCE_IN_RF,
+			1802 => DpdOrder::STATUS_TRANSIT_TERMINAL,
+			2101 => DpdOrder::STATUS_TRANSIT,
+			2102 => DpdOrder::STATUS_TRANSIT_RETURN,
+			​2201 => DpdOrder::STATUS_ARRIVE_PICKUP,
+			2202 => DpdOrder::STATUS_ARRIVE_COURIER,
+			2203 => DpdOrder::STATUS_ARRIVE_PICKUP_RETURN,
+			​2204 => DpdOrder::STATUS_ARRIVE_COURIER_RETURN,
+			​2301 => DpdOrder::STATUS_COURIER,
+			2303 => DpdOrder::STATUS_TRANSIT_TERMINAL,
+			2205 => DpdOrder::STATUS_CUSTOMS_CLEARANCE,
+			2302 => DpdOrder::STATUS_END_CUSTOMS_CLEARANCE,
+			2304 => DpdOrder::STATUS_COURIER,
+			2305 => DpdOrder::STATUS_ARRIVE_COURIER_RETURN,
+			2306 => DpdOrder::STATUS_ARRIVE_COURIER,
+			2307 => DpdOrder::STATUS_PROBLEM,
+			2309 => DpdOrder::STATUS_COURIER_RETURN,
+			2310 => DpdOrder::STATUS_TRANSIT_SPEC,
+			2401 => DpdOrder::STATUS_PROBLEM,
+			2402 => DpdOrder::STATUS_PROBLEM,
+			​2404 => DpdOrder::STATUS_DELIVERY_PROBLEM,
+			​2405 => DpdOrder::STATUS_DELIVERY_PROBLEM,
+			​2406 => DpdOrder::STATUS_DELIVERY_PROBLEM,
+			​2407 => DpdOrder::STATUS_PROBLEM,
+			2408 => DpdOrder::STATUS_PROBLEM,
+			2409 => DpdOrder::STATUS_PROBLEM,
+			2410 => DpdOrder::STATUS_PROBLEM,
+			​​3701 => DpdOrder::STATUS_PROBLEM,
+			​2501 => DpdOrder::STATUS_NOT_DONE,
+			2901 => DpdOrder::STATUS_CANCEL,
+			​3301 => DpdOrder::STATUS_REMOVED,
+			​3302 => DpdOrder::STATUS_NOT_CLAIMED,
+			​3303 => DpdOrder::STATUS_LOST,
+			3304 => DpdOrder::STATUS_DELIVERED,
+			​3305 => DpdOrder::STATUS_DELIVERED,
+			​3306 => DpdOrder::STATUS_RETURNED,
+		];
+
+		if (!array_key_exists($eventCode, $statuses)) {
+			return false;
+		}
+
+		$status = $statuses[$eventCode];
+		$message = isset($eventParams['ERROR_MESSAGE'])
+			? $eventParams['ERROR_MESSAGE']
+			: $eventReason
+		;
+
+		return $this->setOrderStatus($status, $eventTime, $message);
 	}
 
 	/**
@@ -544,7 +635,9 @@ class Model extends BaseModel
 	public function isCreated()
 	{
 		return $this->fields['ORDER_STATUS'] != DpdOrder::STATUS_NEW
-			&& $this->fields['ORDER_STATUS'] != DpdOrder::STATUS_CANCEL;
+			&& $this->fields['ORDER_STATUS'] != DpdOrder::STATUS_CANCEL
+			&& $this->fields['ORDER_STATUS'] != DpdOrder::STATUS_OFFER_CANCEL
+		;
 	}
 
 	/**
