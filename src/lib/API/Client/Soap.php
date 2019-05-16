@@ -199,7 +199,7 @@ class Soap extends \SoapClient implements ClientInterface
 		$keys = $keys ? array_flip((array) $keys) : false;
 
 		$ret = array();
-		foreach ($data as $key => $value) {
+		foreach ((array) $data as $key => $value) {
 			$key = $keys 
 					? implode(':', array_intersect_key($value, $keys))
 					: Utils::camelCaseToUnderScore($key);

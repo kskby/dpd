@@ -99,7 +99,7 @@ class Agents
 				$eventNumber = $state['EVENT_NUMBER'];
 				$eventCode   = $state['EVENT_CODE'] ?: $state['TYPE_CODE'];
 				$eventName   = $state['EVENT_NAME'];
-				$eventReason = $state['REASON_NAME'];
+				$eventReason = isset($state['REASON_NAME']) ? $state['REASON_NAME'] : '';
 				$eventTime   = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
 				$eventParams = [];
 				$number      = $state['DPD_ORDER_NR'];
