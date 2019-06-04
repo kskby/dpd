@@ -110,7 +110,7 @@ class Agents
 				;
 
 				foreach ($params as $param) {
-					$eventParams[$param['PARAM_NAME']] = $param['VALUE'];
+					$eventParams[$param['PARAM_NAME']] = isset($param['VALUE']) ? $param['VALUE'] : null;
 				}
 
 				if (isset($eventParams['ORDER_NUMBER'])) {

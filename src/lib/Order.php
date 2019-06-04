@@ -645,7 +645,7 @@ class Order
 			));
 		}
 
-		return array_merge($ret, array(
+		return array_merge($ret, array_filter(array(
 			'COUNTRY_NAME'  => $location['COUNTRY_NAME'],
 			'REGION'        => $location['REGION_NAME'],
 			'CITY'          => $location['CITY_NAME'],
@@ -657,7 +657,7 @@ class Order
 			'VLAD'          => $this->model->senderVlad,
 			'OFFICE'        => $this->model->senderOffice,
 			'FLAT'          => $this->model->senderFlat,
-		));
+		)));
 	}
 
 	/**
@@ -685,7 +685,7 @@ class Order
 			));
 		}
 
-		return array_merge($ret, array(
+		return array_merge($ret, array_filter(array(
 			'COUNTRY_NAME'  => $location['COUNTRY_NAME'],
 			'REGION'        => $location['REGION_NAME'],
 			'CITY'          => $location['CITY_NAME'],
@@ -698,7 +698,7 @@ class Order
 			'OFFICE'        => $this->model->receiverOffice,
 			'FLAT'          => $this->model->receiverFlat,
 			'INSTRUCTIONS'  => $this->model->receiverComment,
-		));
+		)));
 	}
 
 	/**
