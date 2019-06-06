@@ -191,7 +191,7 @@ class Calculator
 			return false;
 		}
 
-		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL');
+		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL') == 'Y';
 
 		$parms = $this->getServiceParmsArray($calcByParcel);
 		$tariffs = $this->getListFromService($parms, $calcByParcel);
@@ -213,7 +213,7 @@ class Calculator
 			return false;
 		}
 
-		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL');
+		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL') == 'Y';
 
 		$parms = $this->getServiceParmsArray($calcByParcel);
 		$tariffs = $this->getListFromService($parms, $calcByParcel);
@@ -356,7 +356,7 @@ class Calculator
 			return [];
 		}
 
-		return array_intersect_key($tariffs, static::AllowedTariffList());
+		return array_intersect_key($tariffs, $this->AllowedTariffList());
 	}
 
 	/**

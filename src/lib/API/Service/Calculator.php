@@ -42,7 +42,7 @@ class Calculator implements ServiceInterface
 	 */
 	public function getServiceCostByParcels(array $parms)
 	{
-		return $this->client->invoke('getServiceCostByParcels2', $parms, 'request');
+		return $this->client->invoke('getServiceCostByParcels2', $parms, 'request', 'serviceCode');
 	}
 
 	/**
