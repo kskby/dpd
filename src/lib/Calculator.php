@@ -26,7 +26,7 @@ class Calculator
 	public static function TariffList()
 	{
 		return array(
-			"PCL" => "DPD Online Classic",
+			"PCL" => "DPD OPTIMUM",
 			// "CUR" => "DPD CLASSIC domestic",
 			"CSM" => "DPD Online Express",
 			"ECN" => "DPD ECONOMY",
