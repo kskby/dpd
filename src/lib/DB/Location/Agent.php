@@ -106,6 +106,10 @@ class Agent
 				];
 			}
 
+			if (!isset($row[5])) {
+				continue;
+			}
+
 			$country = $row[5];
 			$region  = explode(',', $row[4]);
 
