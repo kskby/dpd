@@ -108,7 +108,12 @@ class Agent
 				];
 			}
 
-			$row     = Utils::convertEncoding($row, 'windows-1251', 'UTF-8');
+			$row = Utils::convertEncoding($row, 'windows-1251', 'UTF-8');
+			
+			if (!isset($row[5])) {
+				continue;
+			}
+
 			$country = $row[5];
 			$region  = explode(',', $row[4]);
 
