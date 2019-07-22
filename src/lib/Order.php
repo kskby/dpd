@@ -345,10 +345,10 @@ class Order
 					,
 					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
 					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
-					'EXTRA_PARAM' => array(
+					'EXTRA_PARAM'           => $this->getSourceName() ? array(
 						'NAME'  => 'source_of_order',
 						'VALUE' => $this->getSourceName(),
-					),
+					) : null,
 				),
 			);
 
@@ -531,7 +531,7 @@ class Order
 	 */
 	public function getSourceName()
 	{
-		return $this->sourceName ?: $this->getConfig()->get('SOURCE_NAME', 'SDK');
+		return $this->sourceName ?: $this->getConfig()->get('SOURCE_NAME', null);
 	}
 
 	/**
