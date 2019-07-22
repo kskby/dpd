@@ -14,7 +14,7 @@ class Agent
 	/**
 	 * @deprecated
 	 */
-	protected static $cityFilePath = 'ftp://intergration:xYUX~7W98@ftp.dpd.ru:22/integration/GeographyDPD_20171125.csv';
+	protected static $cityFilePath = 'ftp://integration:xYUX~7W98@ftp.dpd.ru/integration/GeographyDPD_%s.csv';
 
 	protected $api;
 	protected $table;
@@ -62,9 +62,7 @@ class Agent
 	 */
 	public function getCityFilePath()
 	{
-		return $this->getTable()->getConfig()->get('DATA_DIR') .'/cities.csv';
-
-		// return 'ftp://intergration:xYUX~7W98@ftp.dpd.ru:22/integration/GeographyDPD_20171125.csv';
+		return sprintf(static::$cityFilePath, date('Ymd'));
 	}
 
 	/**
@@ -94,16 +92,26 @@ class Agent
 			return false;
 		}
 
-		fseek($file, $position ?: 0);
+		// fseek($file, $position ?: 0);
 
 		$index = 0;
 
 		while(($row = fgetcsv($file, null, ';')) !== false) {
+			if (ftell($file) < ($position ?: 0)) {
+				continue;
+			}
+
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),
 					filesize($this->getCityFilePath())
 				];
+			}
+
+			$row = Utils::convertEncoding($row, 'windows-1251', 'UTF-8');
+			
+			if (!isset($row[5])) {
+				continue;
 			}
 
 			$country = $row[5];

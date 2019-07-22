@@ -24,8 +24,10 @@ class Agents
 	 */
 	public static function checkOrderStatus(ConfigInterface $config)
 	{
-		self::checkPindingOrderStatus($config);
-		self::checkTrakingOrderStatus($config);
+		return array_merge(
+			self::checkPindingOrderStatus($config),
+			self::checkTrakingOrderStatus($config)
+		);
 	}
 
 	/**
@@ -35,19 +37,24 @@ class Agents
 	 */
 	protected static function checkPindingOrderStatus(ConfigInterface $config)
 	{
+		$ret    = [];
 		$table  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order');
 		$orders = $table->find([
 			'where' => 'ORDER_STATUS = :order_status',
 			'order' => 'ORDER_DATE_STATUS ASC, ORDER_DATE_CREATE ASC',
-			'limit' => '0,2',
+			'limit' => '0,200',
 			'bind'  => [
 				':order_status' => \Ipol\DPD\Order::STATUS_PENDING
 			]
 		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), [$table]);
-		
+
 		foreach ($orders as $order) {
 			$order->dpd()->checkStatus();
+
+			$ret[] = $order;
 		}
+
+		return $ret;
 	}
 
 	/**
@@ -57,16 +64,18 @@ class Agents
 	 */
 	protected static function checkTrakingOrderStatus(ConfigInterface $config)
 	{
-		if (!$config->get('STATUS_ORDER_CHECK')) {
-			return;
-		}
+		$result = [];
+
+		// if (!$config->get('STATUS_ORDER_CHECK')) {
+		// 	return $result;
+		// }
 
 		do {
 			$service = API::getInstanceByConfig($config)->getService('event-tracking');
 			$ret = $service->getEvents();
 
 			if (!$ret) {
-				return;
+				return $ret;
 			}
 
 			$states = isset($ret['EVENT']) ? $ret['EVENT'] : [];
@@ -95,6 +104,7 @@ class Agents
 					continue;
 				}
 
+				$result[] = $order;
 
 				$eventNumber = $state['EVENT_NUMBER'];
 				$eventCode   = $state['EVENT_CODE'] ?: $state['TYPE_CODE'];
@@ -126,6 +136,8 @@ class Agents
 				$service->confirm($ret['DOC_ID']);
 			}
 		} while($ret['RESULT_COMPLETE'] != 1);
+
+		return $result;
 	}
 
 	/**
