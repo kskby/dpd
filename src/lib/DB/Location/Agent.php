@@ -62,7 +62,51 @@ class Agent
 	 */
 	public function getCityFilePath()
 	{
-		return sprintf(static::$cityFilePath, date('Ymd'));
+		$path  = sprintf(static::$cityFilePath, date('Ymd'));
+		$parts = parse_url($path);
+
+		if (!is_array($parts) 
+			|| !isset($parts['scheme']) 
+			|| $parts['scheme'] != 'ftp'
+		) {
+			return $path;
+		}
+
+		$localPath = $this->getTable()->getConfig()->get('DATA_DIR') .'/cities.csv';
+		$localTime = file_exists($localPath) ? filemtime($localPath) : false;
+
+		if ($localTime === false || $localTime < time() - 86400) {
+			try {
+				$ftpConnect = ftp_connect($parts['host'], isset($parts['port']) ? $parts['port'] : 21);
+
+				if (!$ftpConnect) {
+					throw new \Exception('Can\'t connect to ftp server');
+				}
+
+				if (!ftp_login($ftpConnect, $parts['user'], $parts['pass'])) {
+					throw new \Exception('Can\'t login into ftp server');;
+				}
+
+				$file = fopen($localPath .'.bak', 'w');
+
+				if (!$file) {
+					throw new \Exception('Can\'t write local file');
+				}
+
+				if (!ftp_fget($ftpConnect, $file, $parts['path'])) {
+					throw new \Exception('Can\'t write download file');
+				}
+
+				if (!rename($localPath .'.bak', $localPath)) {
+					throw new \Exception('Can\'t rename downloaded file');
+				}
+
+			} catch (Exception $e) {
+
+			}
+		}
+
+		return static::$cityFilePath = $localPath;
 	}
 
 	/**
@@ -87,7 +131,9 @@ class Agent
 			], array_flip($countries)
 		);
 
-		$file = fopen($this->getCityFilePath(), 'r');
+		$path = $this->getCityFilePath();
+		$file = @fopen($this->getCityFilePath(), 'r');
+
 		if ($file === false) {
 			return false;
 		}
