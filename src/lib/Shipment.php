@@ -548,17 +548,27 @@ class Shipment
 		);
 
 		$defaultDimensions['VOLUME'] = $defaultDimensions['WIDTH'] * $defaultDimensions['HEIGHT'] * $defaultDimensions['LENGTH'];
+		$useByItem = $this->getConfig()->get('USE_MODE', 'ORDER') == 'ITEM';
+
 		$needCheckWeight     = false;
 		$needCheckDimensions = false;
 		$needCheckVolume     = false;
-
 
 		if ($items) {
 			// получаем габариты одного вида товара в посылке с учетом кол-ва
 			foreach ($items as &$item) {
 				if (!is_array($item['DIMENSIONS'])) {
-					$item['DIMENSIONS'] = unserialize($item['DIMENSIONS']);
+					$item['DIMENSIONS'] = unserialize($item['DIMENSIONS']) ?: [
+						'WIDTH'  => 0,
+						'HEIGHT' => 0,
+						'LENGTH' => 0,
+					];
 				}
+
+				$item['DIMENSIONS']['WIDTH']  = $item['DIMENSIONS']['WIDTH']  ?: ($useByItem ? $defaultDimensions['WIDTH']  : 0);
+				$item['DIMENSIONS']['HEIGHT'] = $item['DIMENSIONS']['HEIGHT'] ?: ($useByItem ? $defaultDimensions['HEIGHT'] : 0);
+				$item['DIMENSIONS']['LENGTH'] = $item['DIMENSIONS']['LENGTH'] ?: ($useByItem ? $defaultDimensions['LENGTH'] : 0);
+				$item['WEIGHT']               = $item['WEIGHT']               ?: ($useByItem ? $defaultDimensions['WEIGHT'] : 0);
 
 				$needCheckWeight = $needCheckWeight || $item['WEIGHT'] <= 0;
 				$needCheckVolume = $needCheckDimensions || !($item['DIMENSIONS']['WIDTH'] && $item['DIMENSIONS']['HEIGHT'] && $item['DIMENSIONS']['LENGTH']);	
