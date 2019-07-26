@@ -93,7 +93,7 @@ class Agent
 					throw new \Exception('Can\'t write local file');
 				}
 
-				if (!ftp_fget($ftpConnect, $file, $parts['path'])) {
+				if (!ftp_fget($ftpConnect, $file, $parts['path'], FTP_BINARY)) {
 					throw new \Exception('Can\'t write download file');
 				}
 
