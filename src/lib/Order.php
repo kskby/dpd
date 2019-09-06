@@ -16,42 +16,72 @@ class Order
 	/**
 	 * Новый заказ, еще не отправлялся в DPD
 	 */
-	const STATUS_NEW             = 'NEW';
+	const STATUS_NEW          = 'NEW';
 
+	/**
+	 * Получена заявка
+	 */
+	const STATUS_OFFER_CREATE = 'OfferCreate';
+
+	/**
+	 * ​В заявке присутствует ошибка
+	 */
+	const STATUS_OFFER_ERROR  = 'OfferUpdating';
+
+	/**
+	 * ​Запрошены паспортные данные получателя
+	 */
+	const STATUS_OFFER_WAITING = 'OfferWaiting';
+	
+	/**
+	 * ​Отмена заявки
+	 */
+	const STATUS_OFFER_CANCEL = 'OfferCancelled';
+	
 	/**
 	 * Заказ создан в DPD
 	 */
 	const STATUS_OK              = 'OK';
-
+	
 	/**
 	 * Заказ требует ручной обработки
 	 */
-	const STATUS_PENDING         = 'OrderPending';
+	const STATUS_PENDING = 'OrderPending';
+	
+	/**
+	 * ​​Заказ ожидает дату приема
+	 */
+	const STATUS_WAITING = 'OrderWaiting';
 
 	/**
 	 * Ошибка с заказом
 	 */
-	const STATUS_ERROR           = 'OrderError';
+	const STATUS_ERROR   = 'OrderError';
 
 	/**
 	 * Заказ отменен
 	 */
-	const STATUS_CANCEL          = 'Canceled';
+	const STATUS_CANCEL  = 'OrderCancelled';
 
 	/**
 	 * Заказ отменен ранее
 	 */
-	const STATUS_CANCEL_PREV     = 'CanceledPreviously';
+	const STATUS_CANCEL_PREV = 'CanceledPreviously';
 
 	/**
 	 * Заказ отменен
 	 */
-	const STATUS_NOT_DONE        = 'NotDone';
+	const STATUS_NOT_DONE = 'NotDone';
 
 	/**
 	 * Заказ принят у отпровителя
 	 */
-	const STATUS_DEPARTURE        = 'OnTerminalPickup';
+	const STATUS_DEPARTURE = 'OnTerminalPickup';
+
+	/**
+	 * Заказ прибыл в страну доставки
+	 */
+	const STATUS_ARRIVED_IN_RF = 'OrderArrivedInRF';
 
 	/**
 	 * Посылка находится в пути (внутренняя перевозка DPD)
@@ -64,14 +94,55 @@ class Order
 	const STATUS_TRANSIT_TERMINAL = 'OnTerminal';
 
 	/**
-	 * Посылка находится на терминале доставки
+	 * ​Заказ готов к выдаче на пункте
+	 */
+	const STATUS_ARRIVE_PICKUP    = 'OnTerminalDeliveryPickup';
+
+	/**
+	 * ​Заказ готов к передаче курьеру для доставки
 	 */
 	const STATUS_ARRIVE           = 'OnTerminalDelivery';
+	const STATUS_ARRIVE_COURIER   = 'OnTerminalDelivery';
+	
+	/**
+	 * ​Заказ следует по маршруту до терминала возврата
+	 */
+	const STATUS_TRANSIT_RETURN = 'OnRoadReturn';
+
+	/**
+	 * ​Заказ на возврат готов к передаче  курьеру для доставки
+	 */
+	const STATUS_ARRIVE_COURIER_RETURN  = 'OnTerminalDeliveryReturn';
+
+	/**
+	 *​ Заказ на возврат готов к выдаче
+	 */
+	const STATUS_ARRIVE_PICKUP_RETURN   = 'OnTerminalDeliveryPickupReturn';
+
+	/**
+	 * Таможенное оформление в стране отправления
+	 */
+	const STATUS_CUSTOMS_CLEARANCE = 'CustomClearance';
+	
+	/**
+	 * ​Закончено таможенное оформление в стране отправления
+	 */
+	const STATUS_END_CUSTOMS_CLEARANCE = 'EndCustomClearance';
+
+	/**
+	 * ​Закончено таможенное оформление в стране отправления
+	 */
+	const STATUS_END_CUSTOMS_CLEARANCE_IN_RF = 'EndCustomClearanceInRF';
 
 	/**
 	 * Посылка выведена на доставку
 	 */
 	const STATUS_COURIER          = 'Delivering';
+	
+	/**
+	 * Посылка выведена на доставку
+	 */
+	const STATUS_COURIER_RETURN   = 'DeliveringReturn';
 
 	/**
 	 * Посылка доставлена получателю
@@ -87,6 +158,11 @@ class Order
 	 * с посылкой возникла проблемная ситуация 
 	 */
 	const STATUS_PROBLEM          = 'Problem';
+	
+	/**
+	 * ​Отказ от заказа в момент доставки
+	 */
+	const STATUS_DELIVERY_PROBLEM = 'OrderDeliveryProblem';
 
 	/**
 	 * Посылка возвращена с доставки
@@ -102,6 +178,21 @@ class Order
 	 * Оформлен новый заказ по инициативе клиента
 	 */
 	const STATUS_NEW_CLIENT       = 'NewOrderByClient';
+
+	/**
+	 * Передано спецперевозчику
+	 */
+	const STATUS_TRANSIT_SPEC = 'OrderDelivering_2310';
+
+	/**
+	 * ​Заказ утилизирован
+	 */
+	const STATUS_REMOVED = 'OrderWorkCompleted_3301';
+
+	/**
+	 * ​Посылка не востребована
+	 */
+	const STATUS_NOT_CLAIMED = 'OrderWorkCompleted_3302';
 
 	/**
 	 * Оплата у получатела налом
@@ -221,7 +312,7 @@ class Order
 					throw new \Exception('Терминал назначения не найден');
 				}
 
-				if ($this->model->npp == 'Y' && !$terminal->checkShipmentPayment($shipment)) {
+				if ($this->model->getSumNpp() > 0 && !$terminal->checkShipmentPayment($shipment)) {
 					throw new \Exception('Терминал назначения не может принять наложенный платеж');
 				}
 			}
@@ -242,7 +333,8 @@ class Order
 					'CARGO_NUM_PACK'        => $this->model->cargoNumPack,
 					'CARGO_WEIGHT'          => $this->model->cargoWeight,
 					'CARGO_VOLUME'          => $this->model->cargoVolume,
-					'CARGO_REGISTERED'      => $this->model->cargoRegistered == 'Y',
+					// 'CARGO_REGISTERED'      => $this->model->cargoRegistered == 'Y',
+					'CARGO_REGISTERED'      => false,
 					'CARGO_CATEGORY'        => $this->model->cargoCategory,
 					'DELIVERY_TIME_PERIOD'  => $this->model->deliveryTimePeriod,
 					'RECEIVER_ADDRESS'      => $this->getReceiverInfo(),
@@ -253,10 +345,10 @@ class Order
 					,
 					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
 					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
-					'EXTRA_PARAM' => array(
+					'EXTRA_PARAM'           => $this->getSourceName() ? array(
 						'NAME'  => 'source_of_order',
 						'VALUE' => $this->getSourceName(),
-					),
+					) : null,
 				),
 			);
 
@@ -439,7 +531,7 @@ class Order
 	 */
 	public function getSourceName()
 	{
-		return $this->sourceName ?: $this->getConfig()->get('SOURCE_NAME', 'SDK');
+		return $this->sourceName ?: $this->getConfig()->get('SOURCE_NAME', null);
 	}
 
 	/**
@@ -553,7 +645,7 @@ class Order
 			));
 		}
 
-		return array_merge($ret, array(
+		return array_merge($ret, array_filter(array(
 			'COUNTRY_NAME'  => $location['COUNTRY_NAME'],
 			'REGION'        => $location['REGION_NAME'],
 			'CITY'          => $location['CITY_NAME'],
@@ -565,7 +657,7 @@ class Order
 			'VLAD'          => $this->model->senderVlad,
 			'OFFICE'        => $this->model->senderOffice,
 			'FLAT'          => $this->model->senderFlat,
-		));
+		)));
 	}
 
 	/**
@@ -593,7 +685,7 @@ class Order
 			));
 		}
 
-		return array_merge($ret, array(
+		return array_merge($ret, array_filter(array(
 			'COUNTRY_NAME'  => $location['COUNTRY_NAME'],
 			'REGION'        => $location['REGION_NAME'],
 			'CITY'          => $location['CITY_NAME'],
@@ -606,7 +698,7 @@ class Order
 			'OFFICE'        => $this->model->receiverOffice,
 			'FLAT'          => $this->model->receiverFlat,
 			'INSTRUCTIONS'  => $this->model->receiverComment,
-		));
+		)));
 	}
 
 	/**

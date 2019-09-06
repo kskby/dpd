@@ -24,8 +24,10 @@ class Agents
 	 */
 	public static function checkOrderStatus(ConfigInterface $config)
 	{
-		self::checkPindingOrderStatus($config);
-		self::checkTrakingOrderStatus($config);
+		return array_merge(
+			self::checkPindingOrderStatus($config),
+			self::checkTrakingOrderStatus($config)
+		);
 	}
 
 	/**
@@ -35,19 +37,24 @@ class Agents
 	 */
 	protected static function checkPindingOrderStatus(ConfigInterface $config)
 	{
+		$ret    = [];
 		$table  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order');
 		$orders = $table->find([
 			'where' => 'ORDER_STATUS = :order_status',
 			'order' => 'ORDER_DATE_STATUS ASC, ORDER_DATE_CREATE ASC',
-			'limit' => '0,2',
+			'limit' => '0,200',
 			'bind'  => [
 				':order_status' => \Ipol\DPD\Order::STATUS_PENDING
 			]
 		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), [$table]);
-		
+
 		foreach ($orders as $order) {
 			$order->dpd()->checkStatus();
+
+			$ret[] = $order;
 		}
+
+		return $ret;
 	}
 
 	/**
@@ -57,16 +64,18 @@ class Agents
 	 */
 	protected static function checkTrakingOrderStatus(ConfigInterface $config)
 	{
-		if (!$config->get('STATUS_ORDER_CHECK')) {
-			return;
-		}
+		$result = [];
+
+		// if (!$config->get('STATUS_ORDER_CHECK')) {
+		// 	return $result;
+		// }
 
 		do {
 			$service = API::getInstanceByConfig($config)->getService('event-tracking');
 			$ret = $service->getEvents();
-			
+
 			if (!$ret) {
-				return;
+				return $ret;
 			}
 
 			$states = isset($ret['EVENT']) ? $ret['EVENT'] : [];
@@ -95,65 +104,15 @@ class Agents
 					continue;
 				}
 
-				$status     = $state['EVENT_CODE'] ?: 'TYPE_CODE';
-				$statusTime = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
-				$number     = $state['DPD_ORDER_NR'];
-				$message    = false;
-				
-				switch($status)
-				{
-					case 'OfferCreate':
-					case 'OfferUpdating':
-					case 'OfferWaiting':
-						continue 2;
+				$result[] = $order;
 
-					case 'OfferCancelled':
-					case 'OrderCancelled':
-						$status = Order::STATUS_CANCEL;
-					break;
-
-					case 'OrderCreate':
-					case 'OrderWaiting':
-						$status = Order::STATUS_OK;
-					break;
-
-					case 'OrderPickup':
-						$status = Order::STATUS_DEPARTURE;
-					break;
-
-					case 'OrderArrivedInRF':
-					case 'OrderOnTerminal':
-					case 'OrderOnRoad':
-						$status = Order::STATUS_TRANSIT;
-					break;
-
-					case 'OrderReady':
-						$status = $order->isSelfDelivery() ? Order::STATUS_ARRIVE : Order::STATUS_TRANSIT_TERMINAL;
-					break;
-
-					case 'OrderDelivering':
-						$status = 'STATUS_COURIER';
-					break;
-
-					case 'OrderProblem':
-					case 'OrderDeliveryProblem':
-					case 'OrderProblem':
-					case 'OrderDeliveryProblem':
-						$status = Order::STATUS_PROBLEM;
-					break;
-
-					case 'OrderDied':
-						$status = Order::STATUS_NOT_DONE;
-					break;
-
-					case 'OrderWorkCompleted':
-						$status = Order::STATUS_DELIVERED;
-					break;
-
-					default:
-						continue 2;
-					break;
-				}
+				$eventNumber = $state['EVENT_NUMBER'];
+				$eventCode   = $state['EVENT_CODE'] ?: $state['TYPE_CODE'];
+				$eventName   = $state['EVENT_NAME'];
+				$eventReason = isset($state['REASON_NAME']) ? $state['REASON_NAME'] : '';
+				$eventTime   = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
+				$eventParams = [];
+				$number      = isset($state['DPD_ORDER_NR']) ? $state['DPD_ORDER_NR'] : null;
 
 				$params = isset($state['PARAMETER']['PARAM_NAME'])
 					? [$state['PARAMETER']]
@@ -161,12 +120,14 @@ class Agents
 				;
 
 				foreach ($params as $param) {
-					if ($param['PARAM_NAME'] == 'ORDER_NUMBER') {
-						$number = $param['VALUE'];
-					}
+					$eventParams[$param['PARAM_NAME']] = isset($param['VALUE']) ? $param['VALUE'] : null;
 				}
 
-				$order->setOrderStatus($status, $statusTime);
+				if (isset($eventParams['ORDER_NUMBER'])) {
+					$number = $eventParams['ORDER_NUMBER'];
+				}
+
+				$order->setOrderStatusByCode($eventNumber, $eventTime, $eventReason, $eventParams);
 				$order->orderNum = $number ?: $order->orderNum;
 				$order->save();
 			}
@@ -175,6 +136,8 @@ class Agents
 				$service->confirm($ret['DOC_ID']);
 			}
 		} while($ret['RESULT_COMPLETE'] != 1);
+
+		return $result;
 	}
 
 	/**

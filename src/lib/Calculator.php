@@ -26,12 +26,12 @@ class Calculator
 	public static function TariffList()
 	{
 		return array(
-			"PCL" => "DPD Online Classic",
+			"PCL" => "DPD OPTIMUM",
 			// "CUR" => "DPD CLASSIC domestic",
 			"CSM" => "DPD Online Express",
 			"ECN" => "DPD ECONOMY",
 			"ECU" => "DPD ECONOMY CU",
-			// "NDY" => "DPD EXPRESS",
+			"NDY" => "DPD EXPRESS",
 			// "TEN" => "DPD 10:00",
 			// "DPT" => "DPD 13:00",
 			// "BZP" => "DPD 18:00",
@@ -191,8 +191,10 @@ class Calculator
 			return false;
 		}
 
-		$parms = $this->getServiceParmsArray();
-		$tariffs = $this->getListFromService($parms);
+		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL') == 'Y';
+
+		$parms = $this->getServiceParmsArray($calcByParcel);
+		$tariffs = $this->getListFromService($parms, $calcByParcel);
 
 		if (empty($tariffs)) {
 			return false;
@@ -211,8 +213,10 @@ class Calculator
 			return false;
 		}
 
-		$parms = $this->getServiceParmsArray();
-		$tariffs = $this->getListFromService($parms);
+		$calcByParcel = $this->getConfig()->get('CALCULATE_BY_PARCEL') == 'Y';
+
+		$parms = $this->getServiceParmsArray($calcByParcel);
+		$tariffs = $this->getListFromService($parms, $calcByParcel);
 
 		if (empty($tariffs)) {
 			return false;
@@ -299,17 +303,32 @@ class Calculator
 	 * 
 	 * @return array
 	 */
-	public function getServiceParmsArray()
+	public function getServiceParmsArray($calcByParcel = false)
 	{
-		return array(
+		$ret = [
 			'PICKUP'         => $this->getShipment()->getSender(),
 			'DELIVERY'       => $this->getShipment()->getReceiver(),
-			'WEIGHT'         => $this->getShipment()->getWeight(),
-			'VOLUME'         => $this->getShipment()->getVolume(),
 			'SELF_PICKUP'    => $this->getShipment()->getSelfPickup()   ? 1 : 0,
 			'SELF_DELIVERY'  => $this->getShipment()->getSelfDelivery() ? 1 : 0,
 			'DECLARED_VALUE' => $this->getShipment()->getDeclaredValue() ? round($this->shipment->getPrice(), 2) : 0,
-		);
+		];
+
+		if ($calcByParcel) {
+			$ret['PARCEL'] = [
+				[
+					'WEIGHT'   => $this->getShipment()->getWeight(),
+					'WIDTH'    => $this->getShipment()->getWidth(),
+					'HEIGHT'   => $this->getShipment()->getHeight(),
+					'LENGTH'   => $this->getShipment()->getLength(),
+					'QUANTITY' => 1,
+				]
+			];
+		} else {
+			$ret['WEIGHT'] = $this->getShipment()->getWeight();
+			$ret['VOLUME'] = $this->getShipment()->getVolume();
+		}
+
+		return $ret;
 	}
 
 	/**
@@ -321,9 +340,21 @@ class Calculator
 	 * 
 	 * @return array
 	 */
-	public function getListFromService($parms)
+	public function getListFromService($parms, $calcByParcel = false)
 	{
-		$tariffs = $this->api->getService('calculator')->getServiceCost($parms);
+		if (isset($parms['VOLUME']) && $parms['VOLUME'] <= 0) {
+			unset($parms['VOLUME']);
+		}
+
+		if ($calcByParcel) {
+			$tariffs = $this->api->getService('calculator')->getServiceCostByParcels($parms);
+		} else {
+			$tariffs = $this->api->getService('calculator')->getServiceCost($parms);
+		}
+
+		if (!$tariffs) {
+			return [];
+		}
 
 		return array_intersect_key($tariffs, $this->AllowedTariffList());
 	}
