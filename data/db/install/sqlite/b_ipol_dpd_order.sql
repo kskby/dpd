@@ -1,7 +1,7 @@
 create table IF NOT EXISTS b_ipol_dpd_order (
 	ID INTEGER PRIMARY KEY AUTOINCREMENT,
 
-	ORDER_ID int null,
+	ORDER_ID varchar(255) null,
 	SHIPMENT_ID int null,
 
 	ORDER_DATE varchar(20) null,
