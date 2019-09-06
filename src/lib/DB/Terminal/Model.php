@@ -111,6 +111,10 @@ class Model extends BaseModel implements \JsonSerializable
 			'SCHEDULE_PAYMENT_CASH'          => $this->fields['SCHEDULE_PAYMENT_CASH'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASH']) : [],
 			'SCHEDULE_PAYMENT_CASHLESS'      => $this->fields['SCHEDULE_PAYMENT_CASHLESS'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASHLESS']) : [],
 			'ADDRESS_DESCR'                  => $this->fields['ADDRESS_DESCR'],
+			'NPP'                            => [
+				'AVAILABLE' => $this->fields['NPP_AVAILABLE'] == 'Y',
+				'AMOUNT'    => $this->fields['NPP_AMOUNT'],
+			],
 		];
 	}
 }
