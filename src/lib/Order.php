@@ -419,7 +419,7 @@ class Order
 
 		} catch (\Exception $e) {
 			$error = new Error($e->getMessage());
-			$result->addError();
+			$result->addError($error);
 		}
 
 		return $result;
