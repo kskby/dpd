@@ -3,6 +3,7 @@ require __DIR__ .'/../src/autoload.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('max_execution_time', 30);
 
 $options = require __DIR__ .'/config.php';
 $config  = new \Ipol\DPD\Config\Config($options);
@@ -19,11 +20,11 @@ if ($step < 2) {
     if ($ret === true) {
         print 'LOAD LOCATIONS STEP 1: FINISH';
         print '<a href="?step=2" id="continue">continue</a><br>';
-        print '<script>document.getElementById("continue").click()</script>';
+        print '<script>setTimeout(function(){document.getElementById("continue").click();}, 2000)</script>';
     } else {
         print sprintf('LOAD LOCATIONS STEP 1: %s%%<br>', round($ret[0] / $ret[1] * 100));
         print '<a href="?step=1&pos='. $ret[0] .'" id="continue">continue</a><br>';
-        print '<script>document.getElementById("continue").click()</script>';
+        print '<script>setTimeout(function(){document.getElementById("continue").click();}, 2000)</script>';
     }
 } elseif ($step < 3) {
     $ret = $loader->loadCashPay($pos);
@@ -35,6 +36,7 @@ if ($step < 2) {
 
         print sprintf('LOAD LOCATIONS STEP 2: %s%%<br>', round(end($pos) / $ret[1] * 100));
         print '<a href="?step=2&pos='. $ret[0] .'" id="continue">continue</a><br>';
-        print '<script>document.getElementById("continue").click()</script>';
+        print '<br>'. $ret[1];
+        print '<script>setTimeout(function(){document.getElementById("continue").click();}, 2000)</script>';
     }
 }
