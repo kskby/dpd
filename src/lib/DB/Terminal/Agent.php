@@ -99,7 +99,7 @@ class Agent
 	 */
 	public function loadLimited($position = 'RU:0')
 	{
-		$position   = explode(':', $position ?: 'RU:0');
+		$position   = is_array($position) ? $position : explode(':', $position ?: 'RU:0');
 		$started    = false;
 		$start_time = time();
 
