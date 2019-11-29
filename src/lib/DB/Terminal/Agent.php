@@ -49,7 +49,7 @@ class Agent
 			'select' => 'count(*) as cnt',
 		]);
 
-		$items = $this->getTable()->find([
+		$items = $this->getTable()->findModels([
 			'limit' => '0,1000',
 			'order' => 'id',
 		]);
