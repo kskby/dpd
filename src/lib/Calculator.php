@@ -314,15 +314,17 @@ class Calculator
 		];
 
 		if ($calcByParcel) {
-			$ret['PARCEL'] = [
-				[
-					'WEIGHT'   => $this->getShipment()->getWeight(),
-					'WIDTH'    => $this->getShipment()->getWidth(),
-					'HEIGHT'   => $this->getShipment()->getHeight(),
-					'LENGTH'   => $this->getShipment()->getLength(),
-					'QUANTITY' => 1,
-				]
-			];
+			$ret['PARCEL'] = [];
+
+			foreach ($this->getShipment()->getItems() as $item) {
+				$ret['PARCEL'][] = [
+					'WEIGHT'   => $item['WEIGHT'] / 1000,
+					'WIDTH'    => $item['DIMENSIONS']['WIDTH']  / 10,
+					'HEIGHT'   => $item['DIMENSIONS']['HEIGHT'] / 10,
+					'LENGTH'   => $item['DIMENSIONS']['LENGTH'] / 10,
+					'QUANTITY' => $item['QUANTITY'],
+				];
+			}
 		} else {
 			$ret['WEIGHT'] = $this->getShipment()->getWeight();
 			$ret['VOLUME'] = $this->getShipment()->getVolume();
