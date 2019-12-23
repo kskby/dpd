@@ -98,6 +98,11 @@ class Config implements ConfigInterface
          * Название источника заявок в DPD
          */
         'SOURCE_NAME' => '',
+
+        'MARKUP' => [
+            'VALUE' => 0,
+            'TYPE'  => 'FIXED', // PERCENT 
+        ]
     ];
 
     /**

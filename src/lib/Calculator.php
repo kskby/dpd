@@ -202,6 +202,7 @@ class Calculator
 
 		$tariff = $this->getActualTariff($tariffs);
 		$tariff = $this->adjustTariffWithCommission($tariff);
+		$tariff = $this->adjustTariffWithMarkup($tariff);
 		$tariff = $this->convertCurrency($tariff, $currency);
 
 		return self::$lastResult = $tariff;
@@ -224,6 +225,7 @@ class Calculator
 
 		foreach ($tariffs as $k => $tariff) {
 			$tariff = $this->adjustTariffWithCommission($tariff);
+			$tariff = $this->adjustTariffWithMarkup($tariff);
 			$tariff = $this->convertCurrency($tariff, $currency);
 
 			$tariffs[$k] = $tariff;
@@ -258,6 +260,7 @@ class Calculator
 		foreach($tariffs as $tariff) {
 			if ($tariff['SERVICE_CODE'] == $tariffCode) {
 				$tariff = $this->adjustTariffWithCommission($tariff);
+				$tariff = $this->adjustTariffWithMarkup($tariff);
 				$tariff = $this->convertCurrency($tariff, $currency);
 
 				return self::$lastResult = $tariff;
@@ -294,6 +297,36 @@ class Calculator
 
 		$sum = ($this->getShipment()->getPrice() * $commissionPercent / 100);
 		$tariff['COST'] += $sum < $minCommission ? $minCommission : $sum;
+
+		return $tariff;
+	}
+
+	/**
+	 * Добавляет наценку на тариф
+	 *
+	 * @param array $tariff
+	 * 
+	 * @return array
+	 */
+	public function adjustTariffWithMarkup($tariff)
+	{
+		$markup = $this->getConfig()->get('MARKUP', ['VALUE' => 0, 'TYPE' => 'FIXED']);
+
+		if (empty($markup)
+			|| empty($markup['VALUE'])
+			|| empty($markup['TYPE'])
+			|| !in_array($markup['TYPE'], ['FIXED', 'PERCENT'])
+		) {
+			return $tariff;
+		}
+
+		if ($markup['TYPE'] == 'FIXED') {
+			$sum = $markup['VALUE'];
+		} else {
+			$sum = $tariff['COST'] * $markup['VALUE'] / 100;
+		}
+
+		$tariff['COST'] = $tariff['COST'] + $sum;
 
 		return $tariff;
 	}
