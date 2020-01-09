@@ -140,7 +140,7 @@ class Agent
 	 */
 	protected function loadTerminal($item)
 	{
-		if ($item['STATE'] == 'full') {
+		if (!empty($item['STATE']) && $item['STATE'] == 'full') {
 			return true;
 		}
 
