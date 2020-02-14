@@ -345,10 +345,19 @@ class Order
 					,
 					'CARGO_VALUE'           => $this->isToRussia() ? null : $this->model->cargoValue,
 					'UNIT_LOAD'             => $this->isToRussia() ? $this->getUnits() : null,
-					'EXTRA_PARAM'           => $this->getSourceName() ? array(
-						'NAME'  => 'source_of_order',
-						'VALUE' => $this->getSourceName(),
-					) : null,
+					'EXTRA_PARAM'           => array_filter(array(
+						$this->getSourceName() ? array(
+							'NAME'  => 'source_of_order',
+							'VALUE' => $this->getSourceName(),
+						) : null,
+
+						$this->model->useMarking == 'Y' ? array(
+							'NAME'  => 'is_unique_marking',
+							'VALUE' => 1
+						) : null,
+					))
+					
+					
 				),
 			);
 
@@ -768,6 +777,7 @@ class Order
 		$currencyTo   = $this->getApi()->getClientCurrency();
 		$currencyDate = $this->model->orderDate ?: date('Y-m-d H:i:s');
 		$converter    = $this->getCurrencyConverter();
+		$useMarking   = $this->model->useMarking == 'Y';
 
 		return array_map(function($item) use ($currencyFrom, $currencyTo, $currencyDate, $converter) {
 			$item['VAT'] = $item['VAT'] == 'Без НДС' ? '' : $item['VAT'];
@@ -786,6 +796,11 @@ class Order
 					'npp_amount'     => $item['NPP'],
 					'count'          => $item['QUANTITY'],
 				],
+
+				$useMarking ? [
+					'GTIN'   => $item['GTIN'],
+					'serial' => $item['SERIAL'],
+				] : [],
 
 				empty($item['VAT']) ? [] : ['vat_percent' => $item['VAT']],
 				empty($item['VAT']) ? ['without_vat' => 1] : [],

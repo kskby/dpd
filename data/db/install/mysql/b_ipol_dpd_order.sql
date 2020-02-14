@@ -92,6 +92,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 
 	UNIT_LOADS text null,
 	USE_CARGO_VALUE char(1) not null default 'N',
+	USE_MARKING char(1) not null default 'N',
 
 	primary key (ID)
-);
+) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
