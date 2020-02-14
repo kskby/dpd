@@ -91,5 +91,6 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	RECEIVER_NEED_PASS char(1) DEFAULT 'N',
 
 	UNIT_LOADS text null,
-	USE_CARGO_VALUE char(1) not null default 'N'
+	USE_CARGO_VALUE char(1) not null default 'N',
+	USE_MARKING char(1) not null default 'N'
 );

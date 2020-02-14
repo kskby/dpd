@@ -118,6 +118,7 @@ class Table extends AbstractTable
 			
 			'UNIT_LOADS'             => null,
 			'USE_CARGO_VALUE'        => 'N',
+			'USE_MARKING'            => 'N',
 		];
     }
 

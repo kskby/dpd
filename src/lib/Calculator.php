@@ -404,7 +404,8 @@ class Calculator
 	protected function getActualTariff(array $tariffs)
 	{
 		$defaultTariff = false;
-		$actualTariff = reset($tariffs);
+		$actualTariff  = reset($tariffs);
+		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE');
 
 		foreach($tariffs as $tariff) {
 			if ($tariff['SERVICE_CODE'] == $this->getDefaultTariff()) {
@@ -419,7 +420,15 @@ class Calculator
 		if ($defaultTariff
 			&& $actualTariff['COST'] < $this->getMinCostWhichUsedDefTariff()
 		) {
+			if ($defaultPrice > 0) {
+				$defaultTariff['COST'] = $defaultPrice;
+			}
+
 			return $defaultTariff;
+		}
+
+		if ($defaultPrice) {
+			$actualTariff['COST'] = $defaultPrice;
 		}
 
 		return $actualTariff;
