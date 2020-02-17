@@ -420,14 +420,14 @@ class Calculator
 		if ($defaultTariff
 			&& $actualTariff['COST'] < $this->getMinCostWhichUsedDefTariff()
 		) {
-			if ($defaultPrice > 0) {
+			if (is_numeric($defaultPrice)) {
 				$defaultTariff['COST'] = $defaultPrice;
 			}
 
 			return $defaultTariff;
 		}
 
-		if ($defaultPrice) {
+		if (is_numeric($defaultPrice)) {
 			$actualTariff['COST'] = $defaultPrice;
 		}
 
