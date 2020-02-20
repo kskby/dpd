@@ -779,7 +779,7 @@ class Order
 		$converter    = $this->getCurrencyConverter();
 		$useMarking   = $this->model->useMarking == 'Y';
 
-		return array_map(function($item) use ($currencyFrom, $currencyTo, $currencyDate, $converter) {
+		return array_map(function($item) use ($currencyFrom, $currencyTo, $currencyDate, $converter, $useMarking) {
 			$item['VAT'] = $item['VAT'] == 'Без НДС' ? '' : $item['VAT'];
 
 			if ($converter) {
