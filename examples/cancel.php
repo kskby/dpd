@@ -1,4 +1,4 @@
-<?php<?php
+<?php
 require __DIR__ .'/../src/autoload.php';
 
 $options = require __DIR__ .'/config.php';
