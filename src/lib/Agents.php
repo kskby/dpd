@@ -116,7 +116,7 @@ class Agents
 
 				$params = isset($state['PARAMETER']['PARAM_NAME'])
 					? [$state['PARAMETER']]
-					: $state['PARAMETER']
+					: $state['PARAMETER'] ?? []
 				;
 
 				foreach ($params as $param) {
