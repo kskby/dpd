@@ -90,11 +90,12 @@ class Utils
 	public static function isNeedBreak($start_time)
 	{
 		$max_time = ini_get('max_execution_time');
+		$max_time = $max_time > 0 ? $max_time : (empty($_REQUEST['REQUEST_URI']) ? false : 60);
 		
 		if ($max_time > 0) {
 			return time() >= ($start_time + $max_time - 5);
 		}
 
-		return false;
+		return $max_time;
 	}
 }
