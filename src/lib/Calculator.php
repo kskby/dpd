@@ -27,15 +27,17 @@ class Calculator
 	{
 		return array(
 			"PCL" => "DPD OPTIMUM",
-			// "CUR" => "DPD CLASSIC domestic",
+			"CUR" => "DPD CLASSIC",
 			"CSM" => "DPD Online Express",
 			"ECN" => "DPD ECONOMY",
 			"ECU" => "DPD ECONOMY CU",
 			"NDY" => "DPD EXPRESS",
 			// "TEN" => "DPD 10:00",
 			// "DPT" => "DPD 13:00",
-			// "BZP" => "DPD 18:00",
+			"BZP" => "DPD 18:00",
 			"MXO" => "DPD Online Max",
+			"MAX" => "DPD MAX domestic",
+			"PUP" => "DPD SHOP",
 		);
 	}
 
