@@ -39,6 +39,29 @@ class Agent
 	}
 
 	/**
+	 * Удаляет все терминалы перед импортам
+	 *
+	 * @return boolean
+	 */
+	public function deleteAll()
+	{
+		$count = $this->getTable()->findFirst([
+			'select' => 'count(*) as cnt',
+		]);
+
+		$items = $this->getTable()->findModels([
+			'limit' => '0,1000',
+			'order' => 'id',
+		]);
+
+		foreach ($items as $item) {
+			$item->delete();
+		}
+
+		return sizeof($items) >= $count;
+	}
+
+	/**
 	 * Загружает терминалы без ограничений по габаритам
 	 * 
 	 * @param string $position Стартовая позиция импорта
@@ -76,7 +99,7 @@ class Agent
 	 */
 	public function loadLimited($position = 'RU:0')
 	{
-		$position   = explode(':', $position ?: 'RU:0');
+		$position   = is_array($position) ? $position : explode(':', $position ?: 'RU:0');
 		$started    = false;
 		$start_time = time();
 
@@ -117,6 +140,10 @@ class Agent
 	 */
 	protected function loadTerminal($item)
 	{
+		if (!empty($item['STATE']) && $item['STATE'] == 'full') {
+			return true;
+		}
+
 		$fields = [
 			'LOCATION_ID'               => $item['ADDRESS']['CITY_ID'],
 

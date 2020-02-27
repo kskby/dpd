@@ -71,7 +71,7 @@ $terminals = array_filter($terminals, function($terminal) use ($shipment) {
             if (inited) {
                 var data = <?= json_encode([
                     'tariffs'   => $tariffs,
-                    'terminals' => $terminals
+                    'terminals' => array_values($terminals)
                 ]) ?>;
 
                 $('#dpd-map').dpdMap('reload', data);
@@ -79,7 +79,7 @@ $terminals = array_filter($terminals, function($terminal) use ($shipment) {
                 $('#dpd-map')
                     .dpdMap({}, <?= json_encode([
                         'tariffs'   => $tariffs,
-                        'terminals' => $terminals
+                        'terminals' => array_values($terminals)
                     ]) ?>)
 
                     .on('dpd.map.terminal.select', function(e, terminal, widget) {

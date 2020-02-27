@@ -98,7 +98,7 @@ abstract class AbstractTable implements TableInterface
 	{
         $sqlPath = sprintf('%s/db/install/%s/%s.sql',
             $this->getConfig()->get('DATA_DIR'),
-            $this->getConnection()->getDriver(),
+            str_replace('pdo_', '', $this->getConnection()->getDriver()),
             $this->getTableName()
         );
 

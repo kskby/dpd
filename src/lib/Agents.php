@@ -116,7 +116,7 @@ class Agents
 
 				$params = isset($state['PARAMETER']['PARAM_NAME'])
 					? [$state['PARAMETER']]
-					: $state['PARAMETER']
+					: $state['PARAMETER'] ?? []
 				;
 
 				foreach ($params as $param) {
@@ -173,6 +173,15 @@ class Agents
 			case 'LOAD_LOCATION_CASH_PAY':
 				$ret      = $locationLoader->loadCashPay($position);
 				$currStep = 'LOAD_LOCATION_CASH_PAY';
+				$nextStep = 'DELETE_TERMINALS';
+
+				if ($ret !== true) {
+					break;
+				}
+
+			case 'DELETE_TERMINALS':
+				$ret      = $terminalLoader->deleteAll();
+				$currStep = 'DELETE_TERMINALS';
 				$nextStep = 'LOAD_TERMINAL_UNLIMITED';
 
 				if ($ret !== true) {

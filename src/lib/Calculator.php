@@ -27,15 +27,17 @@ class Calculator
 	{
 		return array(
 			"PCL" => "DPD OPTIMUM",
-			// "CUR" => "DPD CLASSIC domestic",
+			"CUR" => "DPD CLASSIC",
 			"CSM" => "DPD Online Express",
 			"ECN" => "DPD ECONOMY",
 			"ECU" => "DPD ECONOMY CU",
 			"NDY" => "DPD EXPRESS",
 			// "TEN" => "DPD 10:00",
 			// "DPT" => "DPD 13:00",
-			// "BZP" => "DPD 18:00",
+			"BZP" => "DPD 18:00",
 			"MXO" => "DPD Online Max",
+			"MAX" => "DPD MAX domestic",
+			"PUP" => "DPD SHOP",
 		);
 	}
 
@@ -202,6 +204,7 @@ class Calculator
 
 		$tariff = $this->getActualTariff($tariffs);
 		$tariff = $this->adjustTariffWithCommission($tariff);
+		$tariff = $this->adjustTariffWithMarkup($tariff);
 		$tariff = $this->convertCurrency($tariff, $currency);
 
 		return self::$lastResult = $tariff;
@@ -224,6 +227,7 @@ class Calculator
 
 		foreach ($tariffs as $k => $tariff) {
 			$tariff = $this->adjustTariffWithCommission($tariff);
+			$tariff = $this->adjustTariffWithMarkup($tariff);
 			$tariff = $this->convertCurrency($tariff, $currency);
 
 			$tariffs[$k] = $tariff;
@@ -258,6 +262,7 @@ class Calculator
 		foreach($tariffs as $tariff) {
 			if ($tariff['SERVICE_CODE'] == $tariffCode) {
 				$tariff = $this->adjustTariffWithCommission($tariff);
+				$tariff = $this->adjustTariffWithMarkup($tariff);
 				$tariff = $this->convertCurrency($tariff, $currency);
 
 				return self::$lastResult = $tariff;
@@ -299,6 +304,36 @@ class Calculator
 	}
 
 	/**
+	 * Добавляет наценку на тариф
+	 *
+	 * @param array $tariff
+	 * 
+	 * @return array
+	 */
+	public function adjustTariffWithMarkup($tariff)
+	{
+		$markup = $this->getConfig()->get('MARKUP', ['VALUE' => 0, 'TYPE' => 'FIXED']);
+
+		if (empty($markup)
+			|| empty($markup['VALUE'])
+			|| empty($markup['TYPE'])
+			|| !in_array($markup['TYPE'], ['FIXED', 'PERCENT'])
+		) {
+			return $tariff;
+		}
+
+		if ($markup['TYPE'] == 'FIXED') {
+			$sum = $markup['VALUE'];
+		} else {
+			$sum = $tariff['COST'] * $markup['VALUE'] / 100;
+		}
+
+		$tariff['COST'] = $tariff['COST'] + $sum;
+
+		return $tariff;
+	}
+
+	/**
 	 * Возвращает параметры для передачи в API
 	 * 
 	 * @return array
@@ -314,15 +349,17 @@ class Calculator
 		];
 
 		if ($calcByParcel) {
-			$ret['PARCEL'] = [
-				[
-					'WEIGHT'   => $this->getShipment()->getWeight(),
-					'WIDTH'    => $this->getShipment()->getWidth(),
-					'HEIGHT'   => $this->getShipment()->getHeight(),
-					'LENGTH'   => $this->getShipment()->getLength(),
-					'QUANTITY' => 1,
-				]
-			];
+			$ret['PARCEL'] = [];
+
+			foreach ($this->getShipment()->getItems() as $item) {
+				$ret['PARCEL'][] = [
+					'WEIGHT'   => $item['WEIGHT'] / 1000,
+					'WIDTH'    => $item['DIMENSIONS']['WIDTH']  / 10,
+					'HEIGHT'   => $item['DIMENSIONS']['HEIGHT'] / 10,
+					'LENGTH'   => $item['DIMENSIONS']['LENGTH'] / 10,
+					'QUANTITY' => $item['QUANTITY'],
+				];
+			}
 		} else {
 			$ret['WEIGHT'] = $this->getShipment()->getWeight();
 			$ret['VOLUME'] = $this->getShipment()->getVolume();
@@ -369,7 +406,8 @@ class Calculator
 	protected function getActualTariff(array $tariffs)
 	{
 		$defaultTariff = false;
-		$actualTariff = reset($tariffs);
+		$actualTariff  = reset($tariffs);
+		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE');
 
 		foreach($tariffs as $tariff) {
 			if ($tariff['SERVICE_CODE'] == $this->getDefaultTariff()) {
@@ -384,7 +422,15 @@ class Calculator
 		if ($defaultTariff
 			&& $actualTariff['COST'] < $this->getMinCostWhichUsedDefTariff()
 		) {
+			if (is_numeric($defaultPrice)) {
+				$defaultTariff['COST'] = $defaultPrice;
+			}
+
 			return $defaultTariff;
+		}
+
+		if (is_numeric($defaultPrice)) {
+			$actualTariff['COST'] = $defaultPrice;
 		}
 
 		return $actualTariff;
