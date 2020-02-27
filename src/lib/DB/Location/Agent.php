@@ -101,7 +101,7 @@ class Agent
 					throw new \Exception('Can\'t rename downloaded file');
 				}
 
-			} catch (Exception $e) {
+			} catch (\Exception $e) {
 
 			}
 		}
@@ -138,15 +138,11 @@ class Agent
 			return false;
 		}
 
-		// fseek($file, $position ?: 0);
+		fseek($file, $position ?: 0);
 
 		$index = 0;
 
 		while(($row = fgetcsv($file, null, ';')) !== false) {
-			if (ftell($file) < ($position ?: 0)) {
-				continue;
-			}
-
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),
