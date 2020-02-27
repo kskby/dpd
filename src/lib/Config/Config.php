@@ -151,6 +151,22 @@ class Config implements ConfigInterface
     }
 
     /**
+     * Проверяет заданы ли минимальные данные для авторизации
+     *
+     * @return boolean
+     */
+    public function isActiveAccount()
+    {
+        $accountLang = $this->get('API_DEF_COUNTRY');
+        $accountLang = $accountLang != 'RU' ? $accountLang : '';
+
+        $clientNumber = $this->get(trim('KLIENT_NUMBER_'. $accountLang, '_'));
+		$clientKey    = $this->get(trim('KLIENT_KEY_'. $accountLang, '_'));
+
+        return !(empty($clientNumber) || empty($clientKey));
+    }
+
+    /**
      * Вызывается после создания объекта
      * 
      * @param array $parms массив опций для переопределения
