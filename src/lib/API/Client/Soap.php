@@ -148,7 +148,7 @@ class Soap extends \SoapClient implements ClientInterface
 	 * @return 
 	 */
 	protected function cache()
-	{
+	{		
 		if ($this->cache === null) {
 			if (class_exists(FilesystemAdapter::class) && $this->cache_time > 0) {
 				$this->cache = new FilesystemAdapter('', $this->cache_time, __DIR__ .'/../../../../data/cache/');
@@ -174,7 +174,9 @@ class Soap extends \SoapClient implements ClientInterface
 	{
 		$ret = array();
 		foreach ($data as $key => $value) {
-			$key = Utils::underScoreToCamelCase($key);
+			if ($key != 'GTIN') {
+				$key = Utils::underScoreToCamelCase($key);
+			}
 
 			$ret[$key] = is_array($value) 
 							? $this->convertDataForService($value)
