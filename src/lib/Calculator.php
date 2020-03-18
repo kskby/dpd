@@ -283,6 +283,12 @@ class Calculator
 	 */
 	public function adjustTariffWithCommission($tariff)
 	{
+		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE');
+
+		if (is_numeric($defaultPrice)) {
+			$tariff['COST'] = $defaultPrice;
+		}
+
 		if (!$this->getShipment()->isPaymentOnDelivery()) {
 			return $tariff;
 		}
@@ -407,7 +413,6 @@ class Calculator
 	{
 		$defaultTariff = false;
 		$actualTariff  = reset($tariffs);
-		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE');
 
 		foreach($tariffs as $tariff) {
 			if ($tariff['SERVICE_CODE'] == $this->getDefaultTariff()) {
@@ -422,15 +427,7 @@ class Calculator
 		if ($defaultTariff
 			&& $actualTariff['COST'] < $this->getMinCostWhichUsedDefTariff()
 		) {
-			if (is_numeric($defaultPrice)) {
-				$defaultTariff['COST'] = $defaultPrice;
-			}
-
 			return $defaultTariff;
-		}
-
-		if (is_numeric($defaultPrice)) {
-			$actualTariff['COST'] = $defaultPrice;
 		}
 
 		return $actualTariff;
