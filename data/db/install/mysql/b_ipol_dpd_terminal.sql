@@ -35,4 +35,4 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	SERVICES text null,
 
 	primary key (ID)
-);
+) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

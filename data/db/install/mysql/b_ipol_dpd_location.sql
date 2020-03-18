@@ -21,7 +21,7 @@ create table IF NOT EXISTS b_ipol_dpd_location (
 	IS_CITY tinyint(1) null,
 
 	primary key (ID)
-);
+) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE INDEX b_ipol_dpd_location_city ON  b_ipol_dpd_location (CITY_ID);
 CREATE INDEX b_ipol_dpd_location_crc ON b_ipol_dpd_location (CITY_NAME, REGION_NAME, COUNTRY_NAME);
