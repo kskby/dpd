@@ -144,6 +144,12 @@ class Agent
 			return true;
 		}
 
+		if (!is_array($item['ADDRESS'])
+			|| empty($item['ADDRESS']['CITY_ID'])
+		) {
+			continue;
+		}
+
 		$fields = [
 			'LOCATION_ID'               => $item['ADDRESS']['CITY_ID'],
 
