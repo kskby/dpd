@@ -147,7 +147,7 @@ class Agent
 		if (!is_array($item['ADDRESS'])
 			|| empty($item['ADDRESS']['CITY_ID'])
 		) {
-			continue;
+			return false;
 		}
 
 		$fields = [
