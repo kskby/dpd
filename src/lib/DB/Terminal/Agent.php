@@ -140,12 +140,9 @@ class Agent
 	 */
 	protected function loadTerminal($item)
 	{
-		if (!empty($item['STATE']) && $item['STATE'] == 'full') {
-			return true;
-		}
-
-		if (!is_array($item['ADDRESS'])
-			|| empty($item['ADDRESS']['CITY_ID'])
+		if (!is_array($item)
+			|| (!empty($item['STATE']) && $item['STATE'] == 'full')
+			|| (!is_array($item['ADDRESS']) || empty($item['ADDRESS']['CITY_ID']))
 		) {
 			return false;
 		}
