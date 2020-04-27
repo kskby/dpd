@@ -63,7 +63,11 @@ class Geography implements ServiceInterface
 			'cityName'    => $cityName
 		)));
 
-		return $ret ? $ret['PARCEL_SHOP'] : $ret;
+		if ($ret) {
+			return array_key_exists('CODE', $ret['PARCEL_SHOP']) ? [$ret['PARCEL_SHOP']] : $ret['PARCEL_SHOP'];
+		}
+
+		return $ret;
 	}
 
 	/**
@@ -75,7 +79,11 @@ class Geography implements ServiceInterface
 	{
 		$ret = $this->client->invoke('getTerminalsSelfDelivery2', array(), false);
 
-		return $ret ? $ret['TERMINAL'] : $ret;
+		if ($ret) {
+			return array_key_exists('CODE', $ret['TERMINAL']) ? [$ret['TERMINAL']] : $ret['TERMINAL'];
+		}
+
+		return $ret;
 	}
 
 	/**
