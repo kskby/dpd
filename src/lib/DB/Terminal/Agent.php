@@ -141,8 +141,8 @@ class Agent
 	protected function loadTerminal($item)
 	{
 		if (!is_array($item)
+			|| (empty($item['TERMINAL_CODE']) && empty($item['CODE']))
 			|| (!empty($item['STATE']) && $item['STATE'] == 'full')
-			|| (!is_array($item['ADDRESS']) || empty($item['ADDRESS']['CITY_ID']))
 		) {
 			return false;
 		}
