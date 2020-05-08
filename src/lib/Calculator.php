@@ -287,6 +287,14 @@ class Calculator
 
 		if (is_numeric($defaultPrice)) {
 			$tariff['COST'] = $defaultPrice;
+		} else {
+			$defaultPrice = explode('|', $defaultPrice);
+
+			if (is_numeric($defaultPrice[0]) && !$this->getShipment()->setSelfDelivery()) {	
+				$tariff['COST'] = $defaultPrice[0];
+			} elseif (is_numeric($defaultPrice[1]) && $this->getShipment()->setSelfDelivery()) {
+				$tariff['COST'] = $defaultPrice[1];
+			}
 		}
 
 		if (!$this->getShipment()->isPaymentOnDelivery()) {
