@@ -290,9 +290,9 @@ class Calculator
 		} else {
 			$defaultPrice = explode('|', $defaultPrice);
 
-			if (is_numeric($defaultPrice[0]) && !$this->getShipment()->setSelfDelivery()) {	
+			if (is_numeric($defaultPrice[0]) && !$this->getShipment()->getSelfDelivery()) {	
 				$tariff['COST'] = $defaultPrice[0];
-			} elseif (is_numeric($defaultPrice[1]) && $this->getShipment()->setSelfDelivery()) {
+			} elseif (is_numeric($defaultPrice[1]) && $this->getShipment()->getSelfDelivery()) {
 				$tariff['COST'] = $defaultPrice[1];
 			}
 		}
