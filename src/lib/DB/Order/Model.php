@@ -112,7 +112,7 @@ class Model extends BaseModel
 		$this->cargoWeight      = $shipment->getWeight();
 		$this->cargoVolume      = $shipment->getVolume();
 		$this->dimensionWidth   = $shipment->getWidth();
-		$this->dimensionWidth   = $shipment->getHeight();
+		$this->dimensionHeight  = $shipment->getHeight();
 		$this->dimensionLength  = $shipment->getLength();
 		$this->personeTypeId    = $shipment->getPaymentMethod()['PERSONE_TYPE_ID'];
 		$this->paySystemId      = $shipment->getPaymentMethod()['PAY_SYSTEM_ID'];
