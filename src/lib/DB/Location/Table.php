@@ -87,11 +87,12 @@ class Table extends AbstractTable
 		
 		return $this->findFirst([
 			'select' => $select,
-			'where'  => 'COUNTRY_NAME = :country AND REGION_NAME = :region AND CITY_NAME = :city',
+			'where'  => 'COUNTRY_NAME = :country AND REGION_NAME = :region AND CITY_NAME = :city AND IS_CITY = :is_city',
 			'bind'   => [
 				'country' => $city['COUNTRY_NAME'],
 				'region'  => $city['REGION_NAME'],
 				'city'    => $city['CITY_NAME'],
+				'is_city' => $city['IS_CITY'],
 			]
 		]);
 	}
