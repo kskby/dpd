@@ -84,7 +84,19 @@ class Table extends AbstractTable
 	public function getByAddress($country, $region, $city, $select = '*')
 	{
 		$city = $this->getNormalizer()->normilize($country, $region, $city);
-		
+
+		if (empty($city['CITY_ABBR'])) {
+			return $this->findFirst([
+				'select' => $select,
+				'where'  => 'COUNTRY_NAME = :country AND REGION_NAME = :region AND CITY_NAME = :city',
+				'bind'   => [
+					'country' => $city['COUNTRY_NAME'],
+					'region'  => $city['REGION_NAME'],
+					'city'    => $city['CITY_NAME'],
+				]
+			]);
+		}
+
 		return $this->findFirst([
 			'select' => $select,
 			'where'  => 'COUNTRY_NAME = :country AND REGION_NAME = :region AND CITY_NAME = :city AND IS_CITY = :is_city',
