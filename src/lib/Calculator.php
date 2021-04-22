@@ -35,7 +35,7 @@ class Calculator
 			// "TEN" => "DPD 10:00",
 			// "DPT" => "DPD 13:00",
 			"BZP" => "DPD 18:00",
-			"MXO" => "DPD Online Max",
+			"MXO" => "MXO DPD STANDARD",
 			"MAX" => "DPD MAX domestic",
 			"PUP" => "DPD SHOP",
 		);
