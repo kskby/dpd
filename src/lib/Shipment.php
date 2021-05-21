@@ -410,7 +410,7 @@ class Shipment
 	{
 		$volume = $this->dimensions['WIDTH'] * $this->dimensions['HEIGHT'] * $this->dimensions['LENGTH'];
 
-		return $volume / 1000000;
+		return round($volume / 1000000, 6);
 	}
 
 	/**
