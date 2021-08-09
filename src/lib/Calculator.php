@@ -38,6 +38,7 @@ class Calculator
 			"MXO" => "MXO DPD STANDARD",
 			"MAX" => "DPD MAX domestic",
 			"PUP" => "DPD SHOP",
+			"DAY" => "DPD Same Day",
 		);
 	}
 
