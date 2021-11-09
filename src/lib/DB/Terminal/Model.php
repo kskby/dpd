@@ -96,6 +96,18 @@ class Model extends BaseModel implements \JsonSerializable
 		;
 	}
 
+	public function setSchedulePayments($value)
+	{
+		$this->fields['SCHEDULE_PAYMENTS'] = serialize($value);
+
+		return $this;
+	}
+
+	public function getSchedulePayments($value)
+	{
+		return unserialize($this->fields['SCHEDULE_PAYMENTS'] ?: 'a:0:{}') ?: [];
+	}
+
 	public function jsonSerialize()
 	{
 		return [

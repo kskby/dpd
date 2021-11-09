@@ -48,6 +48,7 @@ class Table extends AbstractTable
 			'SCHEDULE_SELF_DELIVERY'    => null,
 			'SCHEDULE_PAYMENT_CASH'     => null,		
 			'SCHEDULE_PAYMENT_CASHLESS' => null,
+			'SCHEDULE_PAYMENTS'         => null,
 			'LATITUDE'                  => 0,
 			'LONGITUDE'                 => 0,
 			'IS_LIMITED'                => 'N',
@@ -60,7 +61,7 @@ class Table extends AbstractTable
 			'LIMIT_SUM_DIMENSION'       => 0,
 			'NPP_AMOUNT'                => 0,		
 			'NPP_AVAILABLE'             => 'N',
-			'SERVICES'                  => null,
+			// 'SERVICES'                  => null,
 		];
 	}
 

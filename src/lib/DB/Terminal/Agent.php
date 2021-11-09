@@ -163,6 +163,14 @@ class Agent
 			'SCHEDULE_SELF_DELIVERY'    => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfDelivery')),
 			'SCHEDULE_PAYMENT_CASH'     => $paymentCash     = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'Payment')),
 			'SCHEDULE_PAYMENT_CASHLESS' => $paymentCashLess = implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentByBankCard')),
+			'SCHEDULE_PAYMENTS'         => serialize([
+				'Payment'                      => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'Payment')),
+				'PaymentByBankCard'            => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentByBankCard')),
+				'PaymentSelfPickupOnline'      => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentSelfPickupOnline')),
+				'PaymentSelfDeliveryOnline'    => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentSelfDeliveryOnline')),
+				'PaymentSelfPickupOnlineSBP'   => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentSelfPickupOnlineSBP')),
+				'PaymentSelfDeliveryOnlineSBP' => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'PaymentSelfDeliveryOnlineSBP')),
+			]),
 
 			'LATITUDE'                  => $item['GEO_COORDINATES']['LATITUDE'],
 			'LONGITUDE'                 => $item['GEO_COORDINATES']['LONGITUDE'],
