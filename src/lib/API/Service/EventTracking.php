@@ -9,7 +9,7 @@ use \Ipol\DPD\API\Client\Factory as ClientFactory;
  */
 class EventTracking implements ServiceInterface
 {
-	protected $wdsl = 'http://ws.dpd.ru/services/event-tracking?wsdl';
+	protected $wdsl = 'https://ws.dpd.ru/services/event-tracking?wsdl';
 
 	/**
      * Конструктор класса

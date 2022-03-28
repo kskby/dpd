@@ -9,7 +9,7 @@ use \Ipol\DPD\API\Client\Factory as ClientFactory;
  */
 class Geography implements ServiceInterface
 {
-	protected $wdsl = 'http://ws.dpd.ru/services/geography2?wsdl';
+	protected $wdsl = 'https://ws.dpd.ru/services/geography2?wsdl';
 
 	protected $clientOld;
 

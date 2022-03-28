@@ -9,7 +9,7 @@ use \Ipol\DPD\API\Client\Factory as ClientFactory;
  */
 class LabelPrint implements ServiceInterface
 {
-	protected $wdsl = 'http://ws.dpd.ru/services/label-print?wsdl';
+	protected $wdsl = 'https://ws.dpd.ru/services/label-print?wsdl';
 
 	/**
      * Конструктор класса

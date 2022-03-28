@@ -9,7 +9,7 @@ use \Ipol\DPD\API\Client\Factory as ClientFactory;
  */
 class Calculator implements ServiceInterface
 {
-	protected $wdsl = 'http://ws.dpd.ru/services/calculator2?wsdl';
+	protected $wdsl = 'https://ws.dpd.ru/services/calculator2?wsdl';
 
 	/**
      * Конструктор класса
@@ -54,6 +54,6 @@ class Calculator implements ServiceInterface
 	 */
 	public function getServiceCostInternational(array $parms)
 	{
-		return $this->client->invoke('getServiceCostInternational', $parms, 'request');
+		return $this->client->invoke('getServiceCostInternational', $parms, 'request', 'serviceCode');
 	}
 }
