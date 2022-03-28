@@ -18,7 +18,7 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	SCHEDULE_PAYMENT_CASHLESS varchar(255) null,
 	SCHEDULE_PAYMENTS text null,
 
-	IS_LIMITED char(1) not null default 'N',
+	IS_LIMITED varchar(1) not null default 'N',
 	LIMIT_MAX_SHIPMENT_WEIGHT double not null default '0',
 	LIMIT_MAX_WEIGHT double not null default '0',
 	LIMIT_MAX_LENGTH double not null default '0',
@@ -31,7 +31,7 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	LONGITUDE double not null default '0',
 
 	NPP_AMOUNT double not null default '0',
-	NPP_AVAILABLE char(1) not null default 'N',
+	NPP_AVAILABLE varchar(1) not null default 'N',
 
 	SERVICES text null,
 
