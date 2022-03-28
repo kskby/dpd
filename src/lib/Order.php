@@ -370,7 +370,7 @@ class Order
 			$ret = $this->getApi()->getService('order')->createOrder($parms);
 			
 			if (!in_array($ret['STATUS'], array(static::STATUS_OK, static::STATUS_PENDING))) {
-				$error = 'DPD: '. nl2br($ret['ERROR_MESSAGE']);
+				$error = 'DPD: '. nl2br(isset($ret['ERROR_MESSAGE']) ? $ret['ERROR_MESSAGE'] : 'unknown error');
 				throw new \Exception($error);
 			}
 
@@ -415,7 +415,7 @@ class Order
 			}
 
 			if (!in_array($ret['STATUS'], array(self::STATUS_CANCEL, self::STATUS_CANCEL_PREV))) {
-				throw new \Exception($ret['ERROR_MESSAGE']);
+				throw new \Exception(isset($ret['ERROR_MESSAGE']) ? $ret['ERROR_MESSAGE'] : 'unknown error');
 			}
 
 			$this->model->orderNum = '';
