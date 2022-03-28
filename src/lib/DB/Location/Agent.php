@@ -87,6 +87,8 @@ class Agent
 					throw new \Exception('Can\'t login into ftp server');;
 				}
 
+				ftp_pasv($ftpConnect, true);
+
 				$file = fopen($localPath .'.bak', 'w');
 
 				if (!$file) {
