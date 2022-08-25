@@ -75,6 +75,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	POD varchar(50) null,
 	PRD varchar(1) not null default 'N',
 	TRM varchar(1) not null default 'N',
+	CHST varchar(4) null,
 
 	LABEL_FILE varchar(255) null,
 	INVOICE_FILE varchar(255) null,

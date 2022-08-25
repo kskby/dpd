@@ -102,6 +102,7 @@ class Table extends AbstractTable
 			'POD'                    => null,
 			'PRD'                    => 'N',
 			'TRM'                    => 'N',
+			'CHST'                   => null,
 			'LABEL_FILE'             => null,
 			'INVOICE_FILE'           => null,
 			'CURRENCY'               => null,

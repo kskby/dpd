@@ -763,6 +763,10 @@ class Order
 			$ret['NPP'] = array('esCode' => 'НПП', 'param' => array('name' => 'sum_npp', 'value' => $this->model->sumNpp));
 		}
 
+		if ($this->model->chst != '') {
+			$ret['CHST'] = array('esCode' => 'ЧСТ', 'param' => array('name' => 'reason_delay', 'value' => $this->model->chst));
+		}
+
 		return array_values($ret);
 	}
 
@@ -821,6 +825,19 @@ class Order
 
 		return (isset($location['COUNTRY_CODE']) && mb_strtoupper($location['COUNTRY_CODE']) == 'RU')
 			|| mb_strtolower($location['COUNTRY_NAME']) == 'россия'
+			|| $this->isToBelorussia()
+		;
+	}
+
+	protected function isToBelorussia()
+	{
+		$location = $this->model->getShipment()->getReceiver();
+
+		return $this->model->chst != '' && !$this->model->isSelfDelivery()
+			&& ( 1 != 1
+				|| (isset($location['COUNTRY_CODE']) && mb_strtoupper($location['COUNTRY_CODE']) == 'BY')
+				|| mb_strtolower($location['COUNTRY_NAME']) == 'белоруссия'
+			)
 		;
 	}
 }
