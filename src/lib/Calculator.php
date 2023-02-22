@@ -50,8 +50,20 @@ class Calculator
 	public function AllowedTariffList()
 	{
 		$disableTariffs = (array) $this->getConfig()->get('TARIFF_OFF');
+		$tariffs = array_diff_key(static::TariffList(), array_flip($disableTariffs));
 
-		return array_diff_key(static::TariffList(), array_flip($disableTariffs));
+		if (($shipment = $this->getShipment()) && $shipment->isPaymentOnDelivery()) {
+			$locationTo = $shipment->getReceiver();
+			$locationFrom = $shipment->getSender();
+
+			if ($locationTo['COUNTRY_CODE'] == 'BY') {
+				$tariffs = array_intersect_key($tariffs, ['CSM' => true]);
+			} elseif ($locationFrom['COUNTRY_CODE'] == 'BY') {
+				$tariffs = array_intersect_key($tariffs, ['PCL' => true, 'ECN' => true]);
+			}
+		}
+
+		return $tariffs;
 	}
 
 	/**
