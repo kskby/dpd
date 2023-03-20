@@ -833,7 +833,7 @@ class Order
 	{
 		$location = $this->model->getShipment()->getReceiver();
 
-		return $this->model->chst != '' && !$this->model->isSelfDelivery()
+		return $this->model->chst != ''
 			&& ( 1 != 1
 				|| (isset($location['COUNTRY_CODE']) && mb_strtoupper($location['COUNTRY_CODE']) == 'BY')
 				|| mb_strtolower($location['COUNTRY_NAME']) == 'белоруссия'
