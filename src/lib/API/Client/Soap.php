@@ -122,7 +122,7 @@ class Soap extends \SoapClient implements ClientInterface
 			if (array_key_exists('return', $ret)) {
 				$ret = $ret['return'];
 
-				if ($keys && array_intersect((array) $keys, array_keys($ret))) {
+                if ($keys && is_array($ret) && array_intersect((array) $keys, array_keys($ret))) {
 					$ret = [$ret];
 				}
 
