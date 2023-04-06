@@ -10,6 +10,8 @@ use \Ipol\DPD\Utils;
  */
 class Agent
 {
+	protected $cleared = false;
+
 	/**
 	 * Конструктор
 	 * 
@@ -45,20 +47,27 @@ class Agent
 	 */
 	public function deleteAll()
 	{
-		$count = $this->getTable()->findFirst([
-			'select' => 'count(*) as cnt',
-		]);
+		if ($this->cleared) return true;
 
-		$items = $this->getTable()->findModels([
-			'limit' => '0,1000',
-			'order' => 'id',
-		]);
+		do {
+			$count = $this->getTable()->findFirst([
+				'select' => 'count(*) as cnt',
+			]);
 
-		foreach ($items as $item) {
-			$item->delete();
-		}
+			if ($count['cnt'] > 0) {
+				$items = $this->getTable()->findModels([
+					'limit' => '0,1000',
+					'order' => 'id',
+				]);
 
-		return sizeof($items) >= $count;
+
+				foreach ($items as $item) {
+					$item->delete();
+				}
+			}
+		} while($count['cnt'] > 0);
+
+		return $this->cleared = true;
 	}
 
 	/**
@@ -73,6 +82,10 @@ class Agent
 		$position   = $position ?: 0;
 		$index      = 0;
 		$start_time = time();
+
+		if ($position <= 0) {
+			$this->deleteAll();
+		}
 
 		$items = $this->getApi()->getService('geography')->getTerminalsSelfDelivery2() ?: array();
 		foreach ($items as $item) {
@@ -102,6 +115,10 @@ class Agent
 		$position   = is_array($position) ? $position : explode(':', $position ?: 'RU:0');
 		$started    = false;
 		$start_time = time();
+
+		if ($position[0] == 'RU' && $position[1] == '0') {
+			$this->deleteAll();
+		}
 
 		foreach (['RU', 'KZ', 'BY', 'AM', 'KG'] as $countryCode) {
 			if ($position[0] != $countryCode && $started === false) {

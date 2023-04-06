@@ -173,7 +173,7 @@ abstract class AbstractTable implements TableInterface
      */
     public function delete($id)
     {
-        $sql = 'DELETE FROM '. $this->getTableName .' WHERE id = :id';
+        $sql = 'DELETE FROM '. $this->getTableName() .' WHERE id = :id';
 
         return $this->getPDO()
                     ->prepare($sql)

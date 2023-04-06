@@ -27,8 +27,8 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	LIMIT_MAX_VOLUME double not null default '0',
 	LIMIT_SUM_DIMENSION double not null default '0',
 
-	LATITUDE double not null default '0',
-	LONGITUDE double not null default '0',
+	LATITUDE double null default '0',
+	LONGITUDE double null default '0',
 
 	NPP_AMOUNT double not null default '0',
 	NPP_AVAILABLE varchar(1) not null default 'N',
