@@ -1,9 +1,10 @@
 <?php
 namespace Ipol\DPD;
 
-use \Ipol\DPD\API\User\User;
-use \Ipol\DPD\Config\ConfigInterface;
-use \Ipol\DPD\DB\Connection as DB;
+use Ipol\DPD\API\User\User;
+use Ipol\DPD\Config\ConfigInterface;
+use Ipol\DPD\DB\Connection as DB;
+use Ipol\DPD\Currency\ConverterInterface;
 
 /**
  * Класс для работы с отправкой
@@ -22,6 +23,8 @@ class Shipment
 	protected $orderItems = array();
 
 	protected $orderItemsPrice = 0;
+
+	protected $orderItemsCurrency = '';
 
 	protected $dimensions = array();
 
@@ -245,14 +248,14 @@ class Shipment
 	 */
 	public function setItems($items, $itemsPrice = null, $defaultDimensions = array())
 	{
-		$this->orderItems      = (array) $items;
-		$this->orderItemsPrice = $itemsPrice != null 
+		$this->orderItems         = (array) $items;
+		$this->orderItemsPrice    = $itemsPrice != null 
 			? $itemsPrice
 			: array_reduce($this->orderItems, function($ret, $item) {
 				return $ret + $item['PRICE'] * $item['QUANTITY'];
 			  }, 0)
 		;
-		$this->dimensions      = $this->calcShipmentDimensions($this->orderItems, $defaultDimensions);
+		$this->dimensions         = $this->calcShipmentDimensions($this->orderItems, $defaultDimensions);
 
 		return $this;
 	}
@@ -284,7 +287,30 @@ class Shipment
 	 */
 	public function setPrice($price)
 	{
-		return $this->orderItemsPrice = $price;
+		$this->orderItemsPrice = $price;
+
+		return $this;
+	}
+
+	/**
+	 * Устанавливает валюту товаров в посылке
+	 * 
+	 */
+	public function setCurrency($currency)
+	{
+		$this->orderItemsCurrency = $currency;
+
+		return $this;
+	}
+
+	/**
+	 * Возвращает валюту товаров в посылке
+	 * 
+	 * @return ;
+	 */
+	public function getCurrency()
+	{
+		return $this->orderItemsCurrency;
 	}
 
 	/**
@@ -516,6 +542,30 @@ class Shipment
 		$arPaymentIds = $this->getConfig()->get('COMMISSION_NPP_PAYMENT', [], $payment['PERSONE_TYPE_ID']);
 		
 		return in_array($payment['PAY_SYSTEM_ID'], $arPaymentIds);
+	}
+
+	/**
+	 * Устанавливает конвертер валюты
+	 * 
+	 * @param \Ipol\DPD\Currency\ConverterInterface $converter
+	 * 
+	 * @return self
+	 */
+	public function setCurrencyConverter(ConverterInterface $converter)
+	{
+		$this->currencyConverter = $converter;
+
+		return $this;
+	}
+
+	/**
+	 * Возвращает конвертер валюты
+	 * 
+	 * @return \Ipol\DPD\Currency\ConverterInterface $converter
+	 */
+	public function getCurrencyConverter()
+	{
+		return $this->currencyConverter;
 	}
 
 	/**

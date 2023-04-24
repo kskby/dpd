@@ -64,6 +64,11 @@ class Order
 	const STATUS_CANCEL  = 'OrderCancelled';
 
 	/**
+	 * Заказ отменен
+	 */
+	const STATUS_CANCEL_ALT = 'Canceled';
+
+	/**
 	 * Заказ отменен ранее
 	 */
 	const STATUS_CANCEL_PREV = 'CanceledPreviously';
@@ -414,7 +419,7 @@ class Order
 				throw new \Exception('Не удалось отменить DPD заказ');
 			}
 
-			if (!in_array($ret['STATUS'], array(self::STATUS_CANCEL, self::STATUS_CANCEL_PREV))) {
+			if (!in_array($ret['STATUS'], array(self::STATUS_CANCEL, STATUS_CANCEL_ALT, self::STATUS_CANCEL_PREV))) {
 				throw new \Exception(isset($ret['ERROR_MESSAGE']) ? $ret['ERROR_MESSAGE'] : 'unknown error');
 			}
 

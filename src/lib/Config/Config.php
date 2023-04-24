@@ -37,6 +37,15 @@ class Config implements ConfigInterface
         'KLIENT_KEY_BY'      => '',
         'KLIENT_CURRENCY_BY' => '',
 
+        'CURRENCY' => [
+            'RU' => '',
+            'BY' => '',
+            'KZ' => '',
+            'AM' => '',
+            // 'UA' => '',
+            'KG' => '',
+        ],
+
         /** Страна по умолчанию, возможные значения пусто, KZ или BY */
         'API_DEF_COUNTRY'    => '',
 

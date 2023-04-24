@@ -14,7 +14,7 @@ create table IF NOT EXISTS b_ipol_dpd_location (
 	
 	LOCATION_ID int not null default '0',
 
-	IS_CASH_PAY varchar(1) not null default 'N',
+	IS_CASH_PAY char(1) not null default 'N',
 
 	ORIG_NAME varchar(255) null,
 	ORIG_NAME_LOWER varchar(255) null,

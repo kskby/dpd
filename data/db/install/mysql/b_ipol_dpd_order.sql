@@ -13,12 +13,12 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	ORDER_STATUS_CANCEL text null,
 	ORDER_ERROR text null,
 	
-	SERVICE_CODE varchar(3) null,
-	SERVICE_VARIANT varchar(2) null,
+	SERVICE_CODE char(3) null,
+	SERVICE_VARIANT char(2) null,
 
 	PICKUP_DATE varchar(20) null,
-	PICKUP_TIME_PERIOD varchar(5) null,
-	DELIVERY_TIME_PERIOD varchar(5) null,
+	PICKUP_TIME_PERIOD char(5) null,
+	DELIVERY_TIME_PERIOD char(5) null,
 
 	DIMENSION_WIDTH  double not null default '0',
 	DIMENSION_HEIGHT double not null default '0',
@@ -41,7 +41,7 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	SENDER_VLAD varchar(10) null,	
 	SENDER_OFFICE varchar(10) null,
 	SENDER_FLAT varchar(10) null,
-	SENDER_TERMINAL_CODE varchar(4) null,
+	SENDER_TERMINAL_CODE char(4) null,
 	
 	RECEIVER_FIO varchar(255) null,
 	RECEIVER_NAME varchar(255) null,
@@ -61,21 +61,20 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	PRICE DOUBLE NULL,
 	PRICE_DELIVERY DOUBLE NULL,
 	CARGO_VALUE double null,
-	NPP varchar(1) not null default 'N',
+	NPP char(1) not null default 'N',
 	SUM_NPP DOUBLE NULL,
 	
 	CARGO_REGISTERED char(1) not null default 'N',
 	SMS varchar(25) null,
 	EML varchar(50) null,
 	ESD varchar(50) null,
-	ESZ varchar(50) null,
-	OGD varchar(4) null,
-	DVD varchar(1) not null default 'N',
-	VDO varchar(1) not null default 'N',
+	ESZ char(50) null,
+	OGD char(4) null,
+	DVD char(1) not null default 'N',
+	VDO char(1) not null default 'N',
 	POD varchar(50) null,
-	PRD varchar(1) not null default 'N',
-	TRM varchar(1) not null default 'N',
-	CHST varchar(4) null,
+	PRD char(1) not null default 'N',
+	TRM char(1) not null default 'N',
 
 	LABEL_FILE varchar(255) null,
 	INVOICE_FILE varchar(255) null,
@@ -88,12 +87,12 @@ create table IF NOT EXISTS b_ipol_dpd_order (
 	PAYMENT_TYPE varchar(255) null,
 	SENDER_EMAIL varchar(50) DEFAULT NULL,
 	RECEIVER_EMAIL varchar(50) DEFAULT NULL,
-	SENDER_NEED_PASS varchar(1) DEFAULT 'N',
-	RECEIVER_NEED_PASS varchar(1) DEFAULT 'N',
+	SENDER_NEED_PASS char(1) DEFAULT 'N',
+	RECEIVER_NEED_PASS char(1) DEFAULT 'N',
 
 	UNIT_LOADS text null,
-	USE_CARGO_VALUE varchar(1) not null default 'N',
-	USE_MARKING varchar(1) not null default 'N',
+	USE_CARGO_VALUE char(1) not null default 'N',
+	USE_MARKING char(1) not null default 'N',
 
 	primary key (ID)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

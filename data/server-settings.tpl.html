@@ -1,0 +1,65 @@
+<style type="text/css">
+	.dpd-checker .exec div {
+		border: 16px solid #f3f3f3; /* Light grey */
+		border-top: 16px solid #3498db; /* Blue */
+		border-radius: 50%;
+		width: 30px;
+		height: 30px;
+		animation: spin 2s linear infinite;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+	/* body {background-color: #fff; color: #222; font-family: sans-serif;} */
+	.dpd-checker pre {margin: 0; font-family: monospace;}
+	.dpd-checker a:link {color: #009; text-decoration: none; background-color: #fff;}
+	.dpd-checker a:hover {text-decoration: underline;}
+	.dpd-checker table {border-collapse: collapse; border: 0; width: 934px; box-shadow: 1px 2px 3px #ccc;}
+	.dpd-checker .center {text-align: center;}
+	.dpd-checker .center table {margin: 1em auto; text-align: left;}
+	.dpd-checker .center th {text-align: center !important;}
+	.dpd-checker td, .dpd-checker th {border: 1px solid #666; vertical-align: baseline; padding: 4px 5px;}
+	.dpd-checker th {position: sticky; top: 0; background: inherit;}
+	.dpd-checker h1 {font-size: 150%;}
+	.dpd-checker h2 {font-size: 125%;}
+	.dpd-checker .p {text-align: left;}
+	.dpd-checker .e {background-color: #ccf; width: 500px; font-weight: bold;}
+	.dpd-checker .h {background-color: #99c; font-weight: bold;}
+	.dpd-checker .v {background-color: #ddd; max-width: 300px; word-wrap: break-word;}
+	.dpd-checker .m {background-color: #ddd; max-width: 500px; word-wrap: break-word;} 
+	.dpd-checker .v i {color: #999;}
+	.dpd-checker img {float: right; border: 0;}
+	.dpd-checker hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}
+	.dpd-checker .red{color:red;}
+	.dpd-checker .green{color:green;}
+	.dpd-checker table td a{font-size: 16px;color:blue;background-color: #ccf;} 
+	.dpd-checker table td a:link{font-size: 16px;color:blue;background-color: #ccf;} 
+</style>	 
+<meta name="ROBOTS" content="NOINDEX,NOFOLLOW,NOARCHIVE" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	
+<div class="dpd-checker">
+	<div class="center">
+		<table>
+			<tr>
+				<td class="e">Параметр</td>
+				<td class="v">Требуется</td>	
+				<td class="v">Текущее значение</td>
+				<td class="m">Примечание</td>
+			</tr>
+
+			#BODY#
+		</table>
+
+		<table>
+			<tr class="">
+				<td style="color:red;">						
+					В случае, если какой-либо параметр не соответствует требованиям - необходимо самостоятельно установить ему 
+					требуемое значение в настройках вашего сервера либо обратиться к специалистам.
+				</td>
+			</tr>
+		</table>	
+	</div>
+</div>

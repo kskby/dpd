@@ -89,6 +89,10 @@ class Calculator
 		$this->api                       = $api ?: API::getInstanceByConfig($this->getConfig());
 		$this->defaultTariffCode         = $this->getConfig()->get('DEFAULT_TARIFF_CODE');
 		$this->minCostWhichUsedDefTariff = $this->getConfig()->get('DEFAULT_TARIFF_THRESHOLD', 0);
+
+		if ($converter = $shipment->getCurrencyConverter()) {
+			$this->setCurrencyConverter($converter);
+		}
 	}
 
 	/**

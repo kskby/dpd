@@ -2,6 +2,13 @@
 
 class SettingChecker
 {
+    protected static $instance;
+
+    public static function getInstance()
+    {
+        return self::$instance ?? self::$instance = new self();
+    }
+
     public function getTests()
     {
         return [
@@ -11,7 +18,7 @@ class SettingChecker
                 'valid' => '5.6',
             ],
 
-            'memmory' => [
+            'executionTime' => [
                 'title' => 'max_execution_time',
                 'desc'  => 'Для работы модуля требуется, чтобы он мог корректно определить максимальное время выполнения скриптов. За это отвечает параметр <a href="https://www.php.net/manual/ru/info.configuration.php#ini.max-execution-time" target="_blank">max_execution_time</a>.',
                 'valid' => 'Установлен',
@@ -19,25 +26,25 @@ class SettingChecker
 
             'socketTimeout' => [
                 'title' => 'default_socket_timeout',
-                'desc'  => 'Для работы модуля требуется чтобы значение времени ожидания для потоков, использующих сокеты выделяемой памяти было более 600 секунд. За это отвечает параметр <a href="https://www.php.net/manual/ru/filesystem.configuration.php#ini.default-socket-timeout" target="_blank">default_socket_timeout</a>'
+                'desc'  => 'Для работы модуля требуется чтобы значение времени ожидания для потоков, использующих сокеты выделяемой памяти было более 600 секунд. За это отвечает параметр <a href="https://www.php.net/manual/ru/filesystem.configuration.php#ini.default-socket-timeout" target="_blank">default_socket_timeout</a>',
                 'valid' => '600',
             ],
 
             'memoryLimit' => [
                 'title' => 'memory_limit',
-                'desc'  => 'Для работы модуля требуется 512М выделяемой памяти. За это отвечает параметр <a href="https://www.php.net/manual/ru/ini.core.php#ini.memory-limit" target="_blank">memory_limit</a>'
+                'desc'  => 'Для работы модуля требуется 512М выделяемой памяти. За это отвечает параметр <a href="https://www.php.net/manual/ru/ini.core.php#ini.memory-limit" target="_blank">memory_limit</a>',
                 'valid' => '512M',
             ],
 
             'soap' => [
                 'title' => 'Поддержка SOAP',
-                'desc'  => 'Для работы модуля требуется установленное расширение <a href="https://www.php.net/manual/ru/book.soap.php" target="_blank">PHP-SOAP</a> и доступен класс <a href="https://www.php.net/manual/ru/class.soapclient.php" target="_blank">\SoapClient</a>'
+                'desc'  => 'Для работы модуля требуется установленное расширение <a href="https://www.php.net/manual/ru/book.soap.php" target="_blank">PHP-SOAP</a> и доступен класс <a href="https://www.php.net/manual/ru/class.soapclient.php" target="_blank">\SoapClient</a>',
                 'valid' => 'Да',
             ],
 
             'externalLink' => [
                 'title' => 'Есть доступ к внешним ресурсам',
-                'desc'  => 'Для работы модуля необходимо чтобы запросы на внешние ресурсы не приводили к ошибкам. В случае проблем необходимо обратиться к хостеру.'
+                'desc'  => 'Для работы модуля необходимо чтобы запросы на внешние ресурсы не приводили к ошибкам. В случае проблем необходимо обратиться к хостеру.',
                 'valid' => 'Да',
             ]
         ];
@@ -46,8 +53,11 @@ class SettingChecker
     public function getVersionValue()        { return phpversion(); }
     public function testVersionValue()       { return version_compare(PHP_VERSION, '5.6') >= 0; }
 
-    public function getMemmoryValue()        { return (int) ini_get('memory_limit'); }
-    public function testMemmoryValue()       { return (int) ini_get('memory_limit') >= 512; }
+    public function getExecutionTimeValue()  { return ini_get('max_execution_time'); }
+    public function testExecutionTimeValue() { return ini_get('max_execution_time') != ''; }
+
+    public function getMemoryLimitValue()        { return ini_get('memory_limit'); }
+    public function testMemoryLimitValue()       { return (int) ini_get('memory_limit') >= 512; }
 
     public function getSocketTimeoutValue()  { return (int) ini_get('default_socket_timeout'); }
     public function testSocketTimeoutValue() { return (int) ini_get('default_socket_timeout') >= 600; }
@@ -63,7 +73,7 @@ class SettingChecker
         $method = 'get'. ucfirst($testName) .'Value';
 
         return method_exists($this, $method)
-            ? $this->$method
+            ? call_user_func([$this, $method])
             : null
         ;
     }
@@ -73,7 +83,7 @@ class SettingChecker
         $method = 'test'. ucfirst($testName) .'Value';
 
         return method_exists($this, $method)
-            ? $this->$method
+            ? call_user_func([$this, $method])
             : null
         ;
     }

@@ -1,7 +1,8 @@
 <?php
 namespace Ipol\DPD\DB\Terminal;
 
-use \Ipol\DPD\DB\Model as BaseModel;
+use Ipol\DPD\DB\Connection;
+use Ipol\DPD\DB\Model as BaseModel;
 use Ipol\DPD\Shipment;
 
 /**
@@ -25,7 +26,7 @@ class Model extends BaseModel implements \JsonSerializable
 			return false;
 		}
 
-		if ($shipment->isPaymentOnDelivery() 
+		if ($shipment->isPaymentOnDelivery()
 			&& !$this->checkShipmentPayment($shipment)
 		) {
 			return false;
@@ -63,7 +64,22 @@ class Model extends BaseModel implements \JsonSerializable
 			return false;
 		}
 
-		return $this->fields['NPP_AMOUNT'] >= $shipment->getPrice();
+		$converter = $shipment->getCurrencyConverter();
+		if (!$converter) return false;
+
+		$config   = $shipment->getConfig();
+		$location = Connection::getInstance($config)->getTable('location')->findFirst([
+			'where' => 'CITY_ID = :city_id',
+			'bind'  => ['city_id' => $this->fields['LOCATION_ID']]
+		]);
+
+		$currencyFrom  = $shipment->getConfig()->get('CURRENCY', '', $location['COUNTRY_CODE']);
+		$currencyTo    = $shipment->getCurrency();
+	
+		$terminalPrice = $converter->convert($this->fields['NPP_AMOUNT'], $currencyFrom, $currencyTo);
+		$shipmentPrice = $shipment->getPrice();
+
+		return $terminalPrice >= $shipmentPrice;
 	}
 
 	/**
@@ -79,21 +95,31 @@ class Model extends BaseModel implements \JsonSerializable
 			return true;
 		}
 
-		return (
-				$this->fields['LIMIT_MAX_WEIGHT'] <= 0
-				|| $shipment->getWeight() <= $this->fields['LIMIT_MAX_WEIGHT']
-			)
+		if ($this->fields['LIMIT_MAX_WEIGHT'] > 0 && $shipment->getWeight() > $this->fields['LIMIT_MAX_WEIGHT']) {
+			return false;
+		}
 
-			&& (
-				$this->fields['LIMIT_MAX_VOLUME'] <= 0
-				|| $shipment->getVolume() <= $this->fields['LIMIT_MAX_VOLUME']
-			)
+		if ($this->fields['LIMIT_MAX_VOLUME'] > 0 && $shipment->getVolume() > $this->fields['LIMIT_MAX_VOLUME']) {
+			return false;
+		}
 
-			&& (
-				$this->fields['LIMIT_SUM_DIMENSION'] <= 0
-				|| array_sum([$shipment->getWidth(), $shipment->getHeight(), $shipment->getLength()]) <= $this->fields['LIMIT_SUM_DIMENSION']
-			)
-		;
+		$dimensions    = [$shipment->getWidth(), $shipment->getHeight(), $shipment->getLength()];
+		$maxDimensions = [$this->fields['LIMIT_MAX_WIDTH'], $this->fields['LIMIT_MAX_HEIGHT'], $this->fields['LIMIT_MAX_LENGTH']];
+
+		if ($this->fields['LIMIT_SUM_DIMENSION'] > 0 && array_sum($dimensions) > $this->fields['LIMIT_SUM_DIMENSION']) {
+			return false;
+		}
+
+		sort($dimensions);
+		sort($maxDimensions);
+
+		foreach(array_keys($dimensions) as $k) {
+			if ($dimensions[$k] > $maxDimensions[$k]) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public function setSchedulePayments($value)
