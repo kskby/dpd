@@ -1,3 +1,4 @@
 vendor/
 data/cache/
 data/db/data.sq3
+examples/test.php

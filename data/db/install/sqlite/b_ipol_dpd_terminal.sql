@@ -2,7 +2,7 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	ID INTEGER PRIMARY KEY AUTOINCREMENT,
 
 	LOCATION_ID varchar(255) null,
-	
+
 	CODE varchar(255) null,
 	NAME varchar(255) null,
 
@@ -16,6 +16,7 @@ create table IF NOT EXISTS b_ipol_dpd_terminal (
 	SCHEDULE_SELF_DELIVERY varchar(255) null,
 	SCHEDULE_PAYMENT_CASH varchar(255) null,
 	SCHEDULE_PAYMENT_CASHLESS varchar(255) null,
+	SCHEDULE_PAYMENTS varchar(255) null,
 
 	IS_LIMITED char(1) not null default 'N',
 	LIMIT_MAX_SHIPMENT_WEIGHT double not null default '0',

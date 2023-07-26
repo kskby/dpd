@@ -1,26 +1,30 @@
 <?php
 namespace Ipol\DPD\DB\Terminal;
 
+use Exception;
 use Ipol\DPD\DB\Connection;
 use Ipol\DPD\DB\Model as BaseModel;
 use Ipol\DPD\Shipment;
+use JsonSerializable;
+use ReturnTypeWillChange;
 
 /**
  * Модель одной записи таблицы терминалов
  */
-class Model extends BaseModel implements \JsonSerializable
+class Model extends BaseModel implements JsonSerializable
 {
-	/**
-	 * Проверяет может ли терминал принять посылку
-	 * 
-	 * @param  \Ipol\DPD\Shipment $shipment
-	 * @param  bool               $checkLocation
-	 * 
-	 * @return bool
-	 */
-	public function checkShipment(Shipment $shipment, $checkLocation = true)
-	{
-		if ($checkLocation 
+    /**
+     * Проверяет может ли терминал принять посылку
+     *
+     * @param Shipment $shipment
+     * @param bool $checkLocation
+     *
+     * @return bool
+     * @throws Exception
+     */
+	public function checkShipment(Shipment $shipment, bool $checkLocation = true): bool
+    {
+		if ($checkLocation
 			&& !$this->checkLocation($shipment->getReceiver())
 		) {
 			return false;
@@ -41,25 +45,26 @@ class Model extends BaseModel implements \JsonSerializable
 
 	/**
 	 * Сверяет местоположение терминала и переданного местоположения
-	 * 
+	 *
 	 * @param  array  $location
-	 * 
+	 *
 	 * @return bool
 	 */
-	public function checkLocation(array $location)
-	{
+	public function checkLocation(array $location): bool
+    {
 		return $this->fields['LOCATION_ID'] == $location['CITY_ID'];
 	}
 
-	/**
-	 * Проверяет возможность принять НПП на терминале
-	 * 
-	 * @param \Ipol\DPD\Shipment $shipment
-	 * 
-	 * @return bool
-	 */
-	public function checkShipmentPayment(Shipment $shipment)
-	{
+    /**
+     * Проверяет возможность принять НПП на терминале
+     *
+     * @param Shipment $shipment
+     *
+     * @return bool
+     * @throws Exception
+     */
+	public function checkShipmentPayment(Shipment $shipment): bool
+    {
 		if ($this->fields['NPP_AVAILABLE'] != 'Y')  {
 			return false;
 		}
@@ -75,7 +80,7 @@ class Model extends BaseModel implements \JsonSerializable
 
 		$currencyFrom  = $shipment->getConfig()->get('CURRENCY', '', $location['COUNTRY_CODE']);
 		$currencyTo    = $shipment->getCurrency();
-	
+
 		$terminalPrice = $converter->convert($this->fields['NPP_AMOUNT'], $currencyFrom, $currencyTo);
 		$shipmentPrice = $shipment->getPrice();
 
@@ -84,13 +89,13 @@ class Model extends BaseModel implements \JsonSerializable
 
 	/**
 	 * Проверяет габариты посылки на возможность ее принятия на терминале
-	 * 
-	 * @param \Ipol\DPD\Shipment $shipment
-	 * 
+	 *
+	 * @param Shipment $shipment
+	 *
 	 * @return bool
 	 */
-	public function checkShipmentDimessions(Shipment $shipment)
-	{
+	public function checkShipmentDimessions(Shipment $shipment): bool
+    {
 		if ($this->fields['IS_LIMITED'] != 'Y') {
 			return true;
 		}
@@ -122,8 +127,8 @@ class Model extends BaseModel implements \JsonSerializable
 		return true;
 	}
 
-	public function setSchedulePayments($value)
-	{
+	public function setSchedulePayments($value): static
+    {
 		$this->fields['SCHEDULE_PAYMENTS'] = serialize($value);
 
 		return $this;
@@ -134,8 +139,8 @@ class Model extends BaseModel implements \JsonSerializable
 		return unserialize($this->fields['SCHEDULE_PAYMENTS'] ?: 'a:0:{}') ?: [];
 	}
 
-	public function jsonSerialize()
-	{
+	#[ReturnTypeWillChange] public function jsonSerialize(): array
+    {
 		return [
 			'ID'                             => $this->fields['ID'],
 			'CODE'                           => $this->fields['CODE'],
@@ -144,10 +149,10 @@ class Model extends BaseModel implements \JsonSerializable
 			'LAT'                            => $this->fields['LATITUDE'],
 			'LON'                            => $this->fields['LONGITUDE'],
 			'ADDRESS_FULL'                   => $this->fields['ADDRESS_FULL'],
-			'SCHEDULE_SELF_PICKUP'           => $this->fields['SCHEDULE_SELF_PICKUP'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_PICKUP']) : [],
-			'SCHEDULE_SELF_DELIVERY'         => $this->fields['SCHEDULE_SELF_DELIVERY'] ? preg_split('!<br>!', $this->fields['SCHEDULE_SELF_DELIVERY']) : [],
-			'SCHEDULE_PAYMENT_CASH'          => $this->fields['SCHEDULE_PAYMENT_CASH'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASH']) : [],
-			'SCHEDULE_PAYMENT_CASHLESS'      => $this->fields['SCHEDULE_PAYMENT_CASHLESS'] ? preg_split('!<br>!', $this->fields['SCHEDULE_PAYMENT_CASHLESS']) : [],
+			'SCHEDULE_SELF_PICKUP'           => $this->fields['SCHEDULE_SELF_PICKUP'] ? explode('<br>', $this->fields['SCHEDULE_SELF_PICKUP']) : [],
+			'SCHEDULE_SELF_DELIVERY'         => $this->fields['SCHEDULE_SELF_DELIVERY'] ? explode('<br>', $this->fields['SCHEDULE_SELF_DELIVERY']) : [],
+			'SCHEDULE_PAYMENT_CASH'          => $this->fields['SCHEDULE_PAYMENT_CASH'] ? explode('<br>', $this->fields['SCHEDULE_PAYMENT_CASH']) : [],
+			'SCHEDULE_PAYMENT_CASHLESS'      => $this->fields['SCHEDULE_PAYMENT_CASHLESS'] ? explode('<br>', $this->fields['SCHEDULE_PAYMENT_CASHLESS']) : [],
 			'ADDRESS_DESCR'                  => $this->fields['ADDRESS_DESCR'],
 			'NPP'                            => [
 				'AVAILABLE' => $this->fields['NPP_AVAILABLE'] == 'Y',

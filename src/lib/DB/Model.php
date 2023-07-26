@@ -2,6 +2,7 @@
 namespace Ipol\DPD\DB;
 
 use \Bitrix\Main\SystemException;
+use Exception;
 use \Ipol\DPD\Utils;
 
 /**
@@ -11,7 +12,7 @@ use \Ipol\DPD\Utils;
  * К значениям полей можно обратиться двумя способами
  *
  * - как к св-ву объекта, в этом случае перед чтением/записи св-ва
- *   будет произведен поиск метода setPopertyName/getPropertyName 
+ *   будет произведен поиск метода setPopertyName/getPropertyName
  *   и если они есть они будут вызваны и возвращен результат этого вызова
  *
  * - как к массиву, в этом случае данные будут записаны/возвращены как есть
@@ -20,26 +21,25 @@ class Model implements \ArrayAccess
 {
 	/**
 	 * Поля записи
-	 * @var array
 	 */
-	protected $fields = false;
+	protected array|bool $fields = false;
 
 	/**
-	 * @var \Ipol\DPD\DB\TableInterface
+	 * @var TableInterface
 	 */
-	protected $table;
+	protected TableInterface $table;
 
 	/**
-	 * @return \Ipol\DPD\DB\TableInterface
+	 * @return TableInterface
 	 */
-	public function getTable()
-	{
+	public function getTable(): TableInterface
+    {
 		return $this->table;
 	}
 
 	/**
 	 * Конструктор класса
-	 * 
+	 *
 	 * @param mixed $id ID или массив полей сущности
 	 */
 	public function __construct(TableInterface $table, $id = false)
@@ -52,13 +52,13 @@ class Model implements \ArrayAccess
 
 	/**
 	 * Получает поля сущности из БД
-	 * 
+	 *
 	 * @param  mixed $id ID или массив полей сущности
-	 * 
+	 *
 	 * @return bool
 	 */
-	public function load($id)
-	{
+	public function load($id): bool
+    {
 		if (!$id) {
 			return false;
 		}
@@ -80,55 +80,56 @@ class Model implements \ArrayAccess
 
 	/**
 	 * Вызывается после получения полей сущности из БД
-	 * 
+	 *
 	 * @return void
 	 */
 	public function afterLoad()
 	{}
 
-	/**
-	 * Добавляет запись в таблицу
-	 * 
-	 * @return bool
-	 */
-	public function insert()
-	{
+    /**
+     * Добавляет запись в таблицу
+     *
+     * @return bool
+     * @throws Exception
+     */
+	public function insert(): bool
+    {
 		if ($this->id) {
-			throw new \Exception('Record is exists');
+			throw new Exception('Record is exists');
 		}
 
 		$ret = $this->getTable()->add($this->fields);
-		
+
 		if ($ret) {
 			$this->id = $ret;
 		}
-		
+
 		return $ret;
 	}
 
-	/**
-	 * Обновляет запись в таблице
-	 * 
-	 * @return bool
-	 */
+    /**
+     * Обновляет запись в таблице
+     *
+     * @return bool
+     * @throws Exception
+     */
 	public function update()
 	{
 		if (!$this->id) {
-			throw new \Exception('Record is not exists');
+			throw new Exception('Record is not exists');
 		}
 
-		$ret = $this->getTable()->update($this->id, $this->fields);
-
-		return $ret;
+        return $this->getTable()->update($this->id, $this->fields);
 	}
 
-	/**
-	 * Сохраняет запись вне зависимости от ее состояния
-	 * 
-	 * @return bool
-	 */
-	public function save()
-	{
+    /**
+     * Сохраняет запись вне зависимости от ее состояния
+     *
+     * @return bool
+     * @throws Exception
+     */
+	public function save(): bool
+    {
 		if ($this->id) {
 			return $this->update();
 		}
@@ -136,15 +137,16 @@ class Model implements \ArrayAccess
 		return $this->insert();
 	}
 
-	/**
-	 * Удаляет запись из таблицы
-	 * 
-	 * @return bool
-	 */
-	public function delete()
-	{
+    /**
+     * Удаляет запись из таблицы
+     *
+     * @return bool
+     * @throws Exception
+     */
+	public function delete(): bool
+    {
 		if (!$this->id) {
-			throw new \Exception('Record is not exists');
+			throw new Exception('Record is not exists');
 		}
 
 		$ret = $this->getTable()->delete($this->id);
@@ -156,19 +158,19 @@ class Model implements \ArrayAccess
 		return $ret;
 	}
 
-	/**
-	 * Возвращает представление записи в виде массива
-	 * 
-	 * @return array
-	 */
-	public function getArrayCopy()
-	{
+    /**
+     * Возвращает представление записи в виде массива
+     *
+     * @return bool|array
+     */
+	public function getArrayCopy(): bool|array
+    {
 		return $this->fields;
 	}
 
 	/**
 	 * Проверяет существование св-ва
-	 * 
+	 *
 	 * @param  string  $prop
 	 * @return boolean
 	 */
@@ -179,25 +181,27 @@ class Model implements \ArrayAccess
 		return array_key_exists($prop, $this->fields);
 	}
 
-	/**
-	 * Удаляет св-во сущности
-	 * 
-	 * @param string $prop
-	 * 
-	 * @return void
-	 */
+    /**
+     * Удаляет св-во сущности
+     *
+     * @param string $prop
+     *
+     * @return void
+     * @throws Exception
+     */
 	public function __unset($prop)
 	{
-		throw new \Exception("Can\'t be removed property {$prop}");
+		throw new Exception("Can\'t be removed property {$prop}");
 	}
 
-	/**
-	 * Получает значение св-ва сущности
-	 * 
-	 * @param  string $prop
-	 * 
-	 * @return mixed
-	 */
+    /**
+     * Получает значение св-ва сущности
+     *
+     * @param string $prop
+     *
+     * @return mixed
+     * @throws Exception
+     */
 	public function __get($prop)
 	{
 		$method = 'get'. Utils::UnderScoreToCamelCase($prop, true);
@@ -207,20 +211,21 @@ class Model implements \ArrayAccess
 
 		$prop = Utils::camelCaseToUnderScore($prop);
 		if (!$this->__isset($prop)) {
-			throw new \Exception("Missing property {$prop}");
+			throw new Exception("Missing property {$prop}");
 		}
 
 		return $this->fields[$prop];
 	}
 
-	/**
-	 * Задает значение св-ва сущности
-	 * 
-	 * @param string $prop
-	 * @param mixed $value
-	 * 
-	 * @return void
-	 */
+    /**
+     * Задает значение св-ва сущности
+     *
+     * @param string $prop
+     * @param mixed $value
+     *
+     * @return void
+     * @throws Exception
+     */
 	public function __set($prop, $value)
 	{
 		$method = 'set'. Utils::UnderScoreToCamelCase($prop, true);
@@ -230,7 +235,7 @@ class Model implements \ArrayAccess
 
 		$prop = Utils::camelCaseToUnderScore($prop);
 		if (!$this->__isset($prop)) {
-			throw new \Exception("Missing property {$prop}");
+			throw new Exception("Missing property {$prop}");
 		}
 
 		$this->fields[$prop] = $value;
@@ -238,47 +243,50 @@ class Model implements \ArrayAccess
 
 	/**
 	 * @param string $prop
-	 * 
+	 *
 	 * @return bool
 	 */
-	public function offsetExists($prop)
+	public function offsetExists($prop): bool
 	{
 		return $this->__isset($prop);
 	}
 
-	/**
-	 * @param string $prop
-	 * 
-	 * @return void
-	 */
-	public function offsetUnset($prop)
+    /**
+     * @param string $prop
+     *
+     * @return void
+     * @throws Exception
+     */
+	public function offsetUnset($prop): void
 	{
-		throw new \Exception("Can\'t be removed property {$prop}");
+		throw new Exception("Can\'t be removed property {$prop}");
 	}
 
-	/**
-	 * @param string $prop
-	 * 
-	 * @return mixed
-	 */
-	public function offsetGet($prop)
+    /**
+     * @param string $prop
+     *
+     * @return mixed
+     * @throws Exception
+     */
+	public function offsetGet($prop): mixed
 	{
 		if (!$this->offsetExists($prop)) {
-			throw new \Exception("Missing property {$prop}");
+			throw new Exception("Missing property {$prop}");
 		}
 
 		return $this->fields[$prop];
 	}
 
-	/**
-	 * @param string $prop
-	 * 
-	 * @return void
-	 */
-	public function offsetSet($prop, $value)
+    /**
+     * @param string $prop
+     * @param $value
+     * @return void
+     * @throws Exception
+     */
+	public function offsetSet($prop, $value): void
 	{
 		if (!$this->offsetExists($prop)) {
-			throw new \Exception("Missing property {$prop}");
+			throw new Exception("Missing property {$prop}");
 		}
 
 		$this->fields[$prop] = $value;

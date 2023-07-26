@@ -1,53 +1,50 @@
 <?php
 namespace Ipol\DPD\DB;
 
-use \PDO;
-use \Ipol\DPD\Config\ConfigInterface;
+use AllowDynamicProperties;
+use Exception;
+use PDO;
+use Ipol\DPD\Config\ConfigInterface;
 
 /**
  * Класс реализует соединения с БД и организует доступ к таблицами
  */
-class Connection implements ConnectionInterface
+#[AllowDynamicProperties] class Connection implements ConnectionInterface
 {
-    protected static $instance;
-    
-    /**
-     * @var array
-     */
-    protected static $classmap = array(
+    protected static ConnectionInterface|Connection $instance;
+
+    protected static array $classmap = [
         'location' => '\\Ipol\\DPD\\DB\\Location\\Table',
 		'terminal' => '\\Ipol\\DPD\\DB\\Terminal\\Table',
 		'order'    => '\\Ipol\\DPD\\DB\\Order\\Table',
-    );
+    ];
+
+    protected array $tables = [];
 
     /**
-     * @var array
-     */
-    protected $tables = array();
-    
-    /**
      * Возвращает инстанс подключения
-     * 
-     * @return \Ipol\DPD\DB\ConnectionInterface
+     *
+     * @param ConfigInterface $config
+     * @return ConnectionInterface|Connection
      */
-    public static function getInstance(ConfigInterface $config)
+    public static function getInstance(ConfigInterface $config): ConnectionInterface|Connection
     {
-        return self::$instance = self::$instance ?: new static($config);
+        return self::$instance = self::$instance ?? new static($config);
     }
 
     /**
      * Конструктор класса
-     * 
-     * @param   string  $dsn        The DSN string
-     * @param   string  $username   (optional) Username
-     * @param   string  $password   (optional) Password
-     * @param   string  $driver     (optional) Driver's name
-     * @param   PDO     $pdo        (optional) PDO object
+     *
+     * <li>string  $dsn        The DSN string</li>
+     * <li>string  $username   (optional) Username</li>
+     * <li>string  $password   (optional) Password</li>
+     * <li>string  $driver     (optional) Driver's name</li>
+     * <li>PDO     $pdo        (optional) PDO object</li>
      */
     public function __construct(ConfigInterface $config)
     {
         $dbConfig = $config->get('DB');
-        
+
         $this->config   = $config;
         $this->dsn      = $dbConfig['DSN'];
         $this->username = $dbConfig['USERNAME'];
@@ -62,30 +59,30 @@ class Connection implements ConnectionInterface
 
     /**
      * Возвращает конфиг
-     * 
-     * @return \Ipol\DPD\Config\ConfigInterface
+     *
+     * @return ConfigInterface
      */
-    public function getConfig()
+    public function getConfig(): ConfigInterface
     {
         return $this->config;
     }
-    
+
     /**
      * Returns the DSN associated with this connection
      *
      * @return  string
      */
-    public function getDSN()
+    public function getDSN(): string
     {
         return $this->dsn;
     }
-    
+
     /**
      * Returns the driver's name
      *
      * @return  string
      */
-    public function getDriver()
+    public function getDriver(): string
     {
         if ($this->driver === null) {
             $this->driver = $this->getPDO()->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -98,7 +95,7 @@ class Connection implements ConnectionInterface
      *
      * @return \PDO
      */
-    public function getPDO()
+    public function getPDO(): PDO
     {
         if (is_null($this->pdo)) {
             $this->pdo = new PDO($this->dsn, $this->username, $this->password);
@@ -111,12 +108,13 @@ class Connection implements ConnectionInterface
 
     /**
      * Возвращает маппер для таблицы
-     * 
+     *
      * @param string $tableName имя маппера/таблицы
-     * 
-     * @return \Ipol\DPD\DB\TableInterface
+     *
+     * @return TableInterface
+     * @throws Exception
      */
-    public function getTable($tableName)
+    public function getTable(string $tableName): TableInterface
     {
         if (isset(static::$classmap[$tableName])) {
             if (!isset($this->tables[$tableName])) {
@@ -127,10 +125,10 @@ class Connection implements ConnectionInterface
             return $this->tables[$tableName];
 		}
 
-		throw new \Exception("Data mapper for {$tableName} not found");
+		throw new Exception("Data mapper for {$tableName} not found");
     }
 
-    protected function init()
+    protected function init(): void
     {
         if (strtoupper($this->getDriver()) == 'MYSQL') {
             $this->getPDO()->query('SET NAMES UTF8');
