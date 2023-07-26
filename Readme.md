@@ -23,20 +23,9 @@ require_once 'path/to/dpd.sdk/src/autoload.php';
 После этого перейдите в папку SDK и запустите комманду ```composer install``` которая загрузит все зависимости проекта
 
 #### Установка через composer
-Добавьте в composer.json проекта следующие строки
 
-```json
-"repositories": [
-  {
-    "type": "vcs",
-    "url": "https://bitbucket.org/DPDinRussia/dpd.sdk";
-  }
-]
-```
-
-после этого выполните добавление SDK в Ваш проект
 ```bash
-composer require ipol/dpd.sdk:dev-master
+composer require kskby/dpd
 ```
 
 #### После установки

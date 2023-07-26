@@ -1,7 +1,7 @@
 {
-    "name": "ipol/dpd.sdk",
+    "name": "kskby/dpd",
     "description": "",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "license": "MIT",
     "keywords": [
         "dpd",
