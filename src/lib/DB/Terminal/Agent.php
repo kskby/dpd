@@ -10,13 +10,15 @@ use \Ipol\DPD\Utils;
  */
 class Agent
 {
-	protected $cleared = false;
+	protected bool $cleared = false;
+    private TableInterface $table;
+    private UserInterface $api;
 
-	/**
+    /**
 	 * Конструктор
-	 * 
-	 * @param \Ipol\DPD\API\User\UserInterface $api   инстанс API
-	 * @param \Ipol\DPD\DB\TableInterface      $table инстанс таблицы для записи данных в БД
+	 *
+	 * @param UserInterface $api   инстанс API
+	 * @param TableInterface $table инстанс таблицы для записи данных в БД
 	 */
 	public function __construct(UserInterface $api, TableInterface $table)
 	{
@@ -25,18 +27,18 @@ class Agent
 	}
 
 	/**
-	 * @return \Ipol\DPD\User\UserInterface
-	 */
-	public function getApi()
-	{
+	 * @return UserInterface
+     */
+	public function getApi(): UserInterface
+    {
 		return $this->api;
 	}
 
 	/**
-	 * @return \Ipol\DPD\DB\Location\Table
-	 */
-	public function getTable()
-	{
+	 * @return TableInterface
+     */
+	public function getTable(): TableInterface
+    {
 		return $this->table;
 	}
 
@@ -45,8 +47,8 @@ class Agent
 	 *
 	 * @return boolean
 	 */
-	public function deleteAll()
-	{
+	public function deleteAll(): bool
+    {
 		if ($this->cleared) return true;
 
 		do {
@@ -70,15 +72,15 @@ class Agent
 		return $this->cleared = true;
 	}
 
-	/**
-	 * Загружает терминалы без ограничений по габаритам
-	 * 
-	 * @param string $position Стартовая позиция импорта
-	 * 
-	 * @return bool|string
-	 */
-	public function loadUnlimited($position = 0)
-	{
+    /**
+     * Загружает терминалы без ограничений по габаритам
+     *
+     * @param int|string|null $position Стартовая позиция импорта
+     *
+     * @return bool|array|string
+     */
+	public function loadUnlimited(int|string|null $position = 0): bool|array|string
+    {
 		$position   = $position ?: 0;
 		$index      = 0;
 		$start_time = time();
@@ -103,15 +105,15 @@ class Agent
 		return true;
 	}
 
-	/**
-	 * Загружает терминалы с ограничениями по габаритам
-	 * 
-	 * @param string $position Стартовая позиция импорта
-	 * 
-	 * @return bool|string
-	 */
-	public function loadLimited($position = 'RU:0')
-	{
+    /**
+     * Загружает терминалы с ограничениями по габаритам
+     *
+     * @param string|array|null $position Стартовая позиция импорта
+     *
+     * @return bool|array|string
+     */
+	public function loadLimited(string|array|null $position = 'RU:0'): bool|array|string
+    {
 		$position   = is_array($position) ? $position : explode(':', $position ?: 'RU:0');
 		$started    = false;
 		$start_time = time();
@@ -150,13 +152,13 @@ class Agent
 
 	/**
 	 * Сохраняет информацию о терминале в БД
-	 * 
+	 *
 	 * @param array $item
-	 * 
+	 *
 	 * @return bool|int
 	 */
-	protected function loadTerminal($item)
-	{
+	protected function loadTerminal($item): bool|int
+    {
 		if (!is_array($item)
 			|| (empty($item['TERMINAL_CODE']) && empty($item['CODE']))
 			|| (!empty($item['STATE']) && $item['STATE'] == 'full')
@@ -167,14 +169,14 @@ class Agent
 		$fields = [
 			'LOCATION_ID'               => $item['ADDRESS']['CITY_ID'],
 
-			'CODE'                      => isset($item['TERMINAL_CODE']) ? $item['TERMINAL_CODE'] : $item['CODE'],
+			'CODE'                      => $item['TERMINAL_CODE'] ?? $item['CODE'],
 			'NAME'                      => $this->normalizeAddress($item['ADDRESS'], true),
 
 			'ADDRESS_FULL'              => $this->normalizeAddress($item['ADDRESS']),
 			'ADDRESS_SHORT'             => $this->normalizeAddress($item['ADDRESS'], true),
-			'ADDRESS_DESCR'             => isset($item['ADDRESS']['DESCRIPT']) ? $item['ADDRESS']['DESCRIPT'] : null,
+			'ADDRESS_DESCR'             => $item['ADDRESS']['DESCRIPT'] ?? null,
 
-			'PARCEL_SHOP_TYPE'          => isset($item['PARCEL_SHOP_TYPE']) ? $item['PARCEL_SHOP_TYPE'] : null,
+			'PARCEL_SHOP_TYPE'          => $item['PARCEL_SHOP_TYPE'] ?? null,
 
 			'SCHEDULE_SELF_PICKUP'      => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfPickup')),
 			'SCHEDULE_SELF_DELIVERY'    => implode('<br>', $this->normalizeSchedule($item['SCHEDULE'], 'SelfDelivery')),
@@ -202,21 +204,21 @@ class Agent
 			'LIMIT_SUM_DIMENSION'       => 0,
 
 			'NPP_AMOUNT'                => $maxNppAmount = $this->getMaxNppAmount($item),
-			'NPP_AVAILABLE'             => (((bool) $maxNppAmount) && (((bool) $paymentCash) || ((bool) $paymentCashLess))) ? 'Y': 'N',
+			'NPP_AVAILABLE'             => (($maxNppAmount) && (($paymentCash) || ($paymentCashLess))) ? 'Y': 'N',
 			'SERVICES'                  => '|'. implode('|', static::getServices($item)) .'|',
 		];
 
 		if (isset($item['LIMITS'])) {
 			$fields['IS_LIMITED']                = 'Y';
-			$fields['LIMIT_MAX_SHIPMENT_WEIGHT'] = isset($item['LIMITS']['MAX_SHIPMENT_WEIGHT']) ? $item['LIMITS']['MAX_SHIPMENT_WEIGHT'] : 0;
-			$fields['LIMIT_MAX_WEIGHT']          = isset($item['LIMITS']['MAX_WEIGHT'])          ? $item['LIMITS']['MAX_WEIGHT'] : 0;
-			$fields['LIMIT_MAX_LENGTH']          = isset($item['LIMITS']['MAX_LENGTH'])          ? $item['LIMITS']['MAX_LENGTH'] : 0;
-			$fields['LIMIT_MAX_WIDTH']           = isset($item['LIMITS']['MAX_WIDTH'])           ? $item['LIMITS']['MAX_WIDTH'] : 0;
-			$fields['LIMIT_MAX_HEIGHT']          = isset($item['LIMITS']['MAX_HEIGHT'])          ? $item['LIMITS']['MAX_HEIGHT'] : 0;
-			$fields['LIMIT_SUM_DIMENSION']       = isset($item['LIMITS']['DIMENSION_SUM'])       ? $item['LIMITS']['DIMENSION_SUM'] : 0;
+			$fields['LIMIT_MAX_SHIPMENT_WEIGHT'] = $item['LIMITS']['MAX_SHIPMENT_WEIGHT'] ?? 0;
+			$fields['LIMIT_MAX_WEIGHT']          = $item['LIMITS']['MAX_WEIGHT'] ?? 0;
+			$fields['LIMIT_MAX_LENGTH']          = $item['LIMITS']['MAX_LENGTH'] ?? 0;
+			$fields['LIMIT_MAX_WIDTH']           = $item['LIMITS']['MAX_WIDTH'] ?? 0;
+			$fields['LIMIT_MAX_HEIGHT']          = $item['LIMITS']['MAX_HEIGHT'] ?? 0;
+			$fields['LIMIT_SUM_DIMENSION']       = $item['LIMITS']['DIMENSION_SUM'] ?? 0;
 			$fields['LIMIT_MAX_VOLUME']          = round($fields['LIMIT_MAX_WIDTH'] * $fields['LIMIT_MAX_HEIGHT'] * $fields['LIMIT_MAX_LENGTH'] / 1000000, 3);
 		}
-		
+
 		$exists = $this->getTable()->getByCode($fields['CODE']);
 
 		if ($exists) {
@@ -230,14 +232,14 @@ class Agent
 
 	/**
 	 * Возвращает адрес терминала в виде строки
-	 * 
+	 *
 	 * @param array $address
-	 * @param bool  $short
-	 * 
+	 * @param bool $short
+	 *
 	 * @return string
 	 */
-	protected function normalizeAddress($address, $short = false)
-	{
+	protected function normalizeAddress(array $address, bool $short = false): string
+    {
 		$address = array_replace_recursive([
 			'INDEX'       => '',
 			'REGION_NAME' => '',
@@ -253,7 +255,7 @@ class Agent
 		$ret = array();
 
 		if ($short === false) {
-			$ret[] = isset($address['INDEX']) ? $address['INDEX'] : '';
+			$ret[] = $address['INDEX'] ?? '';
 
 			if ($address['REGION_NAME'] != $address['CITY_NAME']) {
 				$ret[] = $address['REGION_NAME'];
@@ -285,14 +287,14 @@ class Agent
 
 	/**
 	 * Возвращает график работы терминала в виде строки
-	 * 
-	 * @param array  $schedule  график работы
+	 *
+	 * @param array $schedule  график работы
 	 * @param string $operation операция для фильтрации
-	 * 
-	 * @return string
-	 */
-	protected function normalizeSchedule($schedule, $operation)
-	{
+	 *
+	 * @return array
+     */
+	protected function normalizeSchedule(array $schedule, string $operation): array
+    {
 		$schedule = array_key_exists('OPERATION', $schedule)
 			? array($schedule)
 			: $schedule;
@@ -346,8 +348,8 @@ class Agent
 				$prevIndex = $currentIndex;
 			}
 
-			$ret[] = $timetable 
-				. $fromDay 
+			$ret[] = $timetable
+				. $fromDay
 				. ($fromDay != $prevDay ? '-'. $prevDay : '')
 				. ': '. $time;
 		}
@@ -355,21 +357,21 @@ class Agent
 		return $ret;
 	}
 
-	/**
-	 * Возвращает макс. сумму наложенного платежа
-	 * 
-	 * @param array $item
-	 * 
-	 * @return double
-	 */
-	protected function getMaxNppAmount($item)
-	{
+    /**
+     * Возвращает макс. сумму наложенного платежа
+     *
+     * @param array $item
+     *
+     * @return float|int
+     */
+	protected function getMaxNppAmount(array $item): float|int
+    {
 		if (isset($item['EXTRA_SERVICE'])) {
 			$extraServices = array_key_exists('ES_CODE', $item['EXTRA_SERVICE']) ? array($item['EXTRA_SERVICE']) : $item['EXTRA_SERVICE'];
 
 			foreach ($extraServices as $extraService) {
 				if ($extraService['ES_CODE'] == 'НПП') {
-					return isset($extraService['PARAMS']['VALUE']) ? $extraService['PARAMS']['VALUE'] : 9999999999;
+					return $extraService['PARAMS']['VALUE'] ?? 9999999999;
 				}
 			}
 		}
@@ -377,8 +379,8 @@ class Agent
 		return 0;
 	}
 
-	protected function getServices($item)
-	{
+	protected function getServices($item): array
+    {
 		$ret = [];
 
 		if (!isset($item['EXTRA_SERVICE'])) {
@@ -405,6 +407,6 @@ class Agent
 			}
 		}
 
-		return $ret;		
+		return $ret;
 	}
 }
