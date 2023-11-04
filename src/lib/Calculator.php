@@ -17,8 +17,10 @@ class Calculator
 	protected $shipment;
 
 	protected $currencyConverter;
+    private mixed $defaultTariffCode;
+    private mixed $minCostWhichUsedDefTariff;
 
-	/**
+    /**
 	 * Возвращает список поддерживаемых тарифов
 	 *
 	 * @return array
@@ -68,7 +70,7 @@ class Calculator
 
 	/**
 	 * Возвращает последний расчет
-	 * 
+	 *
 	 * @return array
 	 */
 	public static function getLastResult()
@@ -76,13 +78,13 @@ class Calculator
 		return static::$lastResult;
 	}
 
-	/**
-	 * Конструктор
-	 * 
-	 * @param \Ipol\DPD\Shipment               $shipment  отправление
-	 * @param \Ipol\DPD\API\User\UserInterface $api       инстанс API который будет использован в расчете,
-	 *                                                    по умолчанию будет взят из конфига
-	 */
+    /**
+     * Конструктор
+     *
+     * @param Shipment $shipment отправление
+     * @param UserInterface|null $api инстанс API который будет использован в расчете,
+     *                                                    по умолчанию будет взят из конфига
+     */
 	public function __construct(Shipment $shipment, UserInterface $api = null)
 	{
 		$this->shipment                  = $shipment;
@@ -105,9 +107,9 @@ class Calculator
 
 	/**
 	 * Устанавливает конвертер валюты
-	 * 
+	 *
 	 * @param \Ipol\DPD\Currency\ConverterInterface $converter
-	 * 
+	 *
 	 * @return self
 	 */
 	public function setCurrencyConverter(ConverterInterface $converter)
@@ -119,7 +121,7 @@ class Calculator
 
 	/**
 	 * Возвращает конвертер валюты
-	 * 
+	 *
 	 * @return \Ipol\DPD\Currency\ConverterInterface $converter
 	 */
 	public function getCurrencyConverter()
@@ -130,9 +132,9 @@ class Calculator
 
 	/**
 	 * Устанавливает посылку для расчета стоимости
-	 * 
+	 *
 	 * @param \Ipol\DPD\Shipment $shipment
-	 * 
+	 *
 	 * @return self
 	 */
 	public function setShipment(Shipment $shipment)
@@ -144,7 +146,7 @@ class Calculator
 
 	/**
 	 * Возвращает посыдку для расчета стоимости
-	 * 
+	 *
 	 * @return \Ipol\DPD\Shipment $shipment
 	 */
 	public function getShipment()
@@ -155,13 +157,13 @@ class Calculator
 	/**
 	 * Устанавливает тариф и порог мин. стоимости доставки
 	 * при не достижении которого будет использован переданный тариф
-	 * 
-	 * @param string  $tariffCode
-	 * @param float   $minCostWhichUsedTariff
-	 * 
+	 *
+	 * @param string $tariffCode
+	 * @param float|int $minCostWhichUsedTariff
+	 *
 	 * @return self
 	 */
-	public function setDefaultTariff($tariffCode, $minCostWhichUsedTariff = 0)
+	public function setDefaultTariff(string $tariffCode, float|int $minCostWhichUsedTariff = 0)
 	{
 		$this->defaultTariffCode = $tariffCode;
 		$this->minCostWhichUsedDefTariff = $minCostWhichUsedTariff;
@@ -171,41 +173,41 @@ class Calculator
 
 	/**
 	 * Возвращает тариф по умолчанию
-	 * 
+	 *
 	 * @return string
 	 */
-	public function getDefaultTariff()
-	{
+	public function getDefaultTariff(): string
+    {
 		return $this->defaultTariffCode;
 	}
 
 	/**
 	 * Возвращает порог стоимости доставки при недостижении которого
 	 * будет использован тариф по умолчанию
-	 * 
+	 *
 	 * @return float
 	 */
-	public function getMinCostWhichUsedDefTariff()
-	{
+	public function getMinCostWhichUsedDefTariff(): float
+    {
 		return $this->minCostWhichUsedDefTariff;
 	}
 
-	/**
-	 * Расчитывает стоимость доставки.
-	 * 
-	 * Возвращает оптимальный тариф доставки (минимальный по цене для клиента)
-	 * 
-	 * При передачи параметра $currency и установки конвертера, стоимость будет
-	 * автоматически сконвертирована в переданную валюту
-	 * 
-	 * @see setCurrencyConverter
-	 * 
-	 * @param string $currency валюта
-	 * 
-	 * @return array
-	 */
-	public function calculate($currency = false)
-	{
+    /**
+     * Расчитывает стоимость доставки.
+     *
+     * Возвращает оптимальный тариф доставки (минимальный по цене для клиента)
+     *
+     * При передачах параметра $currency и установки конвертера, стоимость будет
+     * автоматически сконвертирована в переданную валюту
+     *
+     * @param string|bool $currency валюта
+     *
+     * @return bool|array
+     * @see setCurrencyConverter
+     *
+     */
+	public function calculate(string|bool $currency = false): bool|array
+    {
 		if (!$this->getShipment()->isPossibileDelivery()) {
 			return false;
 		}
@@ -228,7 +230,7 @@ class Calculator
 	}
 
 	public function calculateAll($currency = false)
-	{
+    {
 		if (!$this->getShipment()->isPossibileDelivery()) {
 			return false;
 		}
@@ -253,18 +255,18 @@ class Calculator
 		return $tariffs;
 	}
 
-	/**
-	 * Расчитывает стоимость доставки с помощью конкретного тарифа
-	 * 
-	 * Возвращает стоимость доставки c помощью указанного тарифа
-	 * 
-	 * @param  string $tariffCode код тарифа
-	 * @param  string $currency   валюта
-	 * 
-	 * @return array
-	 */
-	public function calculateWithTariff($tariffCode, $currency = false)
-	{
+    /**
+     * Рассчитывает стоимость доставки с помощью конкретного тарифа
+     *
+     * Возвращает стоимость доставки c помощью указанного тарифа
+     *
+     * @param string $tariffCode код тарифа
+     * @param bool $currency валюта
+     *
+     * @return bool|array
+     */
+	public function calculateWithTariff($tariffCode, $currency = false): bool|array
+    {
 		if (!$this->getShipment()->isPossibileDelivery()) {
 			return false;
 		}
@@ -289,25 +291,22 @@ class Calculator
 		return false;
 	}
 
-	/**
-	 * Корректирует стоимость тарифа с учетом комиссии на наложенный платеж 
-	 * 
-	 * @param  array $tariff
-	 * @param  int   $personTypeId
-	 * @param  int   $paySystemId
-	 * 
-	 * @return array
-	 */
-	public function adjustTariffWithCommission($tariff)
-	{
-		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE');
+    /**
+     * Корректирует стоимость тарифа с учетом комиссии на наложенный платеж
+     *
+     * @param array $tariff
+     * @return array
+     */
+	public function adjustTariffWithCommission(array $tariff): array
+    {
+		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE', 0);
 
 		if (is_numeric($defaultPrice)) {
 			$tariff['COST'] = $defaultPrice;
 		} else {
 			$defaultPrice = explode('|', $defaultPrice);
 
-			if (!empty($defaultPrice[0]) && is_numeric($defaultPrice[0]) && !$this->getShipment()->getSelfDelivery()) {	
+			if (!empty($defaultPrice[0]) && is_numeric($defaultPrice[0]) && !$this->getShipment()->getSelfDelivery()) {
 				$tariff['COST'] = $defaultPrice[0];
 			} elseif (!empty($defaultPrice[1]) && is_numeric($defaultPrice[1]) && $this->getShipment()->getSelfDelivery()) {
 				$tariff['COST'] = $defaultPrice[1];
@@ -329,7 +328,7 @@ class Calculator
 		}
 
 		$sum = ($this->getShipment()->getPrice() * $commissionPercent / 100);
-		$tariff['COST'] += $sum < $minCommission ? $minCommission : $sum;
+		$tariff['COST'] += max($sum, $minCommission);
 
 		return $tariff;
 	}
@@ -338,7 +337,7 @@ class Calculator
 	 * Добавляет наценку на тариф
 	 *
 	 * @param array $tariff
-	 * 
+	 *
 	 * @return array
 	 */
 	public function adjustTariffWithMarkup($tariff)
@@ -366,7 +365,7 @@ class Calculator
 
 	/**
 	 * Возвращает параметры для передачи в API
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getServiceParmsArray($calcByParcel = false)
@@ -401,11 +400,11 @@ class Calculator
 
 	/**
 	 * Выполняет расчет через API
-	 * 
+	 *
 	 * Возвращает список тарифов и их стоимость с учетом используемых тарифов
-	 *  
+	 *
 	 * @param  array $parms массив параметров для расчета
-	 * 
+	 *
 	 * @return array
 	 */
 	public function getListFromService($parms, $calcByParcel = false)
@@ -424,14 +423,19 @@ class Calculator
 			return [];
 		}
 
+        foreach ($tariffs as $key => $val) {
+            $tariffs[$val['SERVICE_CODE']] = $val;
+            unset($tariffs[$key]);
+        }
+
 		return array_intersect_key($tariffs, $this->AllowedTariffList());
 	}
 
 	/**
 	 * Ищет оптимальный тариф среди списка
-	 * 
+	 *
 	 * @param  array $tariffs
-	 * 
+	 *
 	 * @return array
 	 */
 	protected function getActualTariff(array $tariffs)
@@ -460,16 +464,16 @@ class Calculator
 
 	/**
 	 * Конвертирует стоимость доставки в указанную валюту
-	 * 
-	 * @param array  $tariff
+	 *
+	 * @param array $tariff
 	 * @param string $currencyTo
-	 * 
+	 *
 	 * @return array
 	 */
-	protected function convertCurrency($tariff, $currencyTo)
-	{
+	protected function convertCurrency(array $tariff, string $currencyTo): array
+    {
 		$converter = $this->getCurrencyConverter();
-		
+
 		if ($converter) {
 			$currencyFrom = $this->api->getClientCurrency();
 			$currencyTo   = $currencyTo ?: $currencyFrom;
