@@ -301,6 +301,10 @@ class Calculator
     {
 		$defaultPrice  = $this->getConfig()->get('DEFAULT_PRICE', 0);
 
+        if (!$defaultPrice) {
+            return $tariff;
+        }
+
 		if (is_numeric($defaultPrice)) {
 			$tariff['COST'] = $defaultPrice;
 		} else {
