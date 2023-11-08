@@ -122,7 +122,9 @@ class Agent
 			$this->deleteAll();
 		}
 
-		foreach (['RU', 'KZ', 'BY', 'AM', 'KG'] as $countryCode) {
+        $terminal_countries = $this->getTable()->getConfig()->get('TERMINAL_COUNTRIES') ?? ['RU', 'KZ', 'BY', 'AM', 'KG'];
+
+		foreach ($terminal_countries as $countryCode) {
 			if ($position[0] != $countryCode && $started === false) {
 				continue;
 			}
