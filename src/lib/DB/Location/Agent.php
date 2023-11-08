@@ -21,7 +21,7 @@ class Agent
 
 	/**
 	 * Конструктор
-	 * 
+	 *
 	 * @param \Ipol\DPD\User\UserInterface $api   инстанс API
 	 * @param \Ipol\DPD\DB\TableInterface  $table инстанс таблицы для записи данных в БД
 	 */
@@ -49,7 +49,7 @@ class Agent
 
 	/**
 	 * Возвращает normalizer адресов
-	 * 
+	 *
 	 * @return \Ipol\DPD\DB\Location\Normilizer
 	 */
 	public function getNormalizer()
@@ -65,8 +65,8 @@ class Agent
 		$path  = sprintf(static::$cityFilePath, date('Ymd'));
 		$parts = parse_url($path);
 
-		if (!is_array($parts) 
-			|| !isset($parts['scheme']) 
+		if (!is_array($parts)
+			|| !isset($parts['scheme'])
 			|| $parts['scheme'] != 'ftp'
 		) {
 			return $path;
@@ -111,23 +111,21 @@ class Agent
 		return static::$cityFilePath = $localPath;
 	}
 
-	/**
-	 * Обновляет список городов обслуживания
-	 * 
-	 * @param integer $position Стартовая позиция курсора в файле
-	 * @param array   $countries Массив стран для обработки
-	 * 
-	 * @return true|integer
-	 */
-	public function loadAll($position = 0, $countries = ['RU', 'KZ', 'BY', 'AM', 'KG'])
-	{
-		ini_set('auto_detect_line_endings', true);
-		
+    /**
+     * Обновляет список городов обслуживания
+     *
+     * @param integer $position Стартовая позиция курсора в файле
+     * @param array $countries Массив стран для обработки
+     *
+     * @return bool|array
+     */
+	public function loadAll($position = 0, array $countries = ['RU', 'KZ', 'BY', 'AM', 'KG']): bool|array
+    {
 		$start_time = time();
 		$countries  = array_intersect_key([
-				'RU' => 'россия', 
-				'KZ' => 'казахстан', 
-				'BY' => 'беларусь', 
+				'RU' => 'россия',
+				'KZ' => 'казахстан',
+				'BY' => 'беларусь',
 				'AM' => 'армения',
 				'KG' => 'киргизия',
 			], array_flip($countries)
@@ -153,7 +151,7 @@ class Agent
 			}
 
 			$row = Utils::convertEncoding($row, 'windows-1251', 'UTF-8');
-			
+
 			if (!isset($row[5])) {
 				continue;
 			}
@@ -161,7 +159,7 @@ class Agent
 			$country = $row[5];
 			$region  = explode(',', $row[4]);
 
-			if (!empty($countries) 
+			if (!empty($countries)
 				&& !in_array(mb_strtolower($country), $countries)
 			) {
 				continue;
@@ -188,10 +186,10 @@ class Agent
 
 	/**
 	 * Обновляет города в которых доступен НПП
-	 * 
+	 *
 	 * @param string $position  Стартовая позиция импорта
 	 * @param array  $countries Массив стран для обработки
-	 * 
+	 *
 	 * @return true|string
 	 */
 	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY', 'AM', 'KG'])
@@ -244,10 +242,10 @@ class Agent
 
 	/**
 	 * Сохраняет город в БД
-	 * 
+	 *
 	 * @param array $city
 	 * @param array $additFields
-	 * 
+	 *
 	 * @return bool
 	 */
 	protected function loadLocation($city, $additFields = array())
