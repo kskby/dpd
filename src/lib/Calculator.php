@@ -427,11 +427,6 @@ class Calculator
 			return [];
 		}
 
-        foreach ($tariffs as $key => $val) {
-            $tariffs[$val['SERVICE_CODE']] = $val;
-            unset($tariffs[$key]);
-        }
-
 		return array_intersect_key($tariffs, $this->AllowedTariffList());
 	}
 

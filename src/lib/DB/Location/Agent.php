@@ -121,6 +121,8 @@ class Agent
      */
 	public function loadAll($position = 0, array $countries = ['RU', 'KZ', 'BY', 'AM', 'KG']): bool|array
     {
+        ini_set('auto_detect_line_endings', true);
+
 		$start_time = time();
 		$countries  = array_intersect_key([
 				'RU' => 'россия',

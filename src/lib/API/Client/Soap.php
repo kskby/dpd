@@ -193,10 +193,10 @@ class Soap extends \SoapClient implements ClientInterface
      * - перевод названий параметров в UNDER_SCORE
      *
      * @param array $data
-     * @param bool $keys
+     * @param mixed $keys
      * @return array
      */
-	protected function convertDataFromService(array $data, bool $keys = false): array
+	protected function convertDataFromService(array $data, mixed $keys = false): array
     {
 		$keys = $keys ? array_flip((array) $keys) : false;
 
