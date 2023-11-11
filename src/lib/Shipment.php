@@ -36,6 +36,10 @@ class Shipment
 
     private $currencyConverter;
 
+    private array $locationFrom;
+
+    private array $locationTo;
+
     /**
      * Конструктор класса
      *
