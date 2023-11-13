@@ -5,14 +5,14 @@ namespace Ipol\DPD\DB\Location;
  * Класс обеспечивающий приведение различных адресов к единой форме
  */
 class Normalizer
-{      
+{
     /**
      * Возвращает нормализованную информацию о нас. пункте
-     * 
+     *
      * @param string $country  Название страны
      * @param string $region   Название региона
      * @param string $locality Название населенного пункта
-     * 
+     *
      * @return array
      */
     public function normilize($country, $region, $locality)
@@ -26,9 +26,9 @@ class Normalizer
 
     /**
      * Возвращает информацию о стране
-     * 
+     *
      * @param string $country  Название страны
-     * 
+     *
      * @return array
      */
     public function normilizeCountry($country)
@@ -41,10 +41,10 @@ class Normalizer
 
     /**
      * Возвращает информацию о регионе
-     * 
+     *
      * @param string $region
      * @param array  $country
-     * 
+     *
      * @return array
      */
     public function normilizeRegion($region, $country)
@@ -62,10 +62,10 @@ class Normalizer
 
     /**
      * Возвращает нормализованную информацию о нас. пункте
-     * 
+     *
      * @param string $city
      * @param array  $region
-     * 
+     *
      * @return array
      */
     public function normilizeCity($city, $region)
@@ -86,10 +86,10 @@ class Normalizer
 
     /**
      * Объединяет города аналоги в один город
-     * 
+     *
      * @param string $city
      * @param array  $region
-     * 
+     *
      * @return string
      */
     public function checkAnalog($city, $region)
@@ -98,7 +98,7 @@ class Normalizer
         $cityLower   = mb_strtolower($city, 'UTF-8');
 
         foreach ($this->getCityAnalogs() as $analog => $analogs) {
-            if (isset($analogs[$cityLower]) 
+            if (isset($analogs[$cityLower])
                 && in_array($regionLower, $analogs[$cityLower])
             ) {
                 return $analog;
@@ -110,17 +110,17 @@ class Normalizer
 
     /**
      * Удаляет из строки аббревиатуру и возвращает ее
-     * 
+     *
      * @param string $string
      * @param array  $abbrList
-     * 
+     *
      * @return string|false
      */
     protected function trimAbbr(&$string, $abbrList)
 	{
         usort($abbrList, function($a, $b) {
             return mb_strlen($b, 'UTF-8') - mb_strlen($a, 'UTF-8');
-        });       
+        });
 
         foreach ($abbrList as $abbr) {
             $abbr       = trim($abbr);
@@ -139,10 +139,10 @@ class Normalizer
 
         return null;
     }
-    
+
     /**
      * Возвращает список стран
-     * 
+     *
      * @return array
      */
     protected function getCountryList()
@@ -156,7 +156,7 @@ class Normalizer
 
     /**
      * Возвращает аббревиатуру региона
-     * 
+     *
      * @return array
      */
     protected function getRegionAbbrList()
@@ -176,10 +176,10 @@ class Normalizer
 
     /**
      * Возвращает список кодов регионов
-     * 
+     *
      * @param string $region
      * @param string $countryCode
-     * 
+     *
      * @return array
      */
     protected function getRegionCodeList($countryCode)
@@ -195,7 +195,7 @@ class Normalizer
 
     /**
      * Возвращает аббревиатуру города
-     * 
+     *
      * @return array
      */
     protected function getCityAbbrList()
@@ -208,10 +208,10 @@ class Normalizer
 
     /**
      * Возвращает аббревиатуру нас. пункта
-     * 
+     *
      * @return array
      */
-    protected function getVillageAbbrList()
+    protected function getVillageAbbrList(): array
     {
         return [
             'посёлок городского типа',
@@ -225,8 +225,8 @@ class Normalizer
             'посёлок',
             'п',
             'станция',
-            'ст', 
-            'аул', 
+            'ст',
+            'аул',
             'станица',
             'ст-ца',
             'снт',
@@ -249,18 +249,19 @@ class Normalizer
             'платф',
             'починок',
             'промзона',
+            'агрогородок'
         ];
     }
 
     /**
      * Возвращает список городов аналогов
-     * 
+     *
      * @return array
      */
     protected function getCityAnalogs()
     {
         return [];
-        
+
         return [
             // город
             'Москва' => [
@@ -270,7 +271,7 @@ class Normalizer
                 'тверь_969'  => ['москва', 'московская'],
                 // 'московский' => ['москва', 'московская'],
             ],
-        
+
             'Санкт-петербург' => [
                 'колпино'      => ['ленинградская'],
                 'красное cело' => ['ленинградская'],
