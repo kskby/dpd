@@ -8,14 +8,14 @@ class Utils
 {
 	/**
 	 * Переводит строку из under_score в camelCase
-	 * 
-	 * @param  string  $string                   строка для преобразования
-	 * @param  boolean $capitalizeFirstCharacter первый символ строчный или прописной
-	 * 
+	 *
+	 * @param string $string                    строка для преобразования
+	 * @param boolean $capitalizeFirstCharacter первый символ строчный или прописной
+	 *
 	 * @return string
 	 */
-	public static function underScoreToCamelCase($string, $capitalizeFirstCharacter = false)
-	{
+	public static function underScoreToCamelCase(string $string, bool $capitalizeFirstCharacter = false): string
+    {
 		// символы разного регистра
 		if (/*strtolower($string) != $string
 			&&*/ strtoupper($string) != $string
@@ -35,20 +35,20 @@ class Utils
 
 	/**
 	 * Переводит строку из camelCase в under_score
-	 * 
-	 * @param  string  $string    строка для преобразования
-	 * @param  boolean $uppercase
-	 * 
+	 *
+	 * @param string $string    строка для преобразования
+	 * @param boolean $uppercase
+	 *
 	 * @return string
 	 */
-	public static function camelCaseToUnderScore($string, $uppercase = true)
-	{
+	public static function camelCaseToUnderScore(string $string, bool $uppercase = true): string
+    {
 		// символы разного регистра
 		if (strtolower($string) != $string
 			&& strtoupper($string) != $string
 		) {
-			$string = ltrim(strtolower(preg_replace('/[A-Z]/', '_$0', $string)), '_');;
-		}		
+			$string = ltrim(strtolower(preg_replace('/[A-Z]/', '_$0', $string)), '_');
+		}
 
 		if ($uppercase) {
 			$string = strtoupper($string);
@@ -61,37 +61,42 @@ class Utils
 	 * Конверирует кодировку
 	 * В качестве значений может быть как скалярный тип, так и массив
 	 *
-	 * @param mixed $data
+	 * @param array|string $data
 	 * @param string $fromEncoding
 	 * @param string $toEncoding
-	 * 
-	 * @return mixed
-	 */
-	public static function convertEncoding($data, $fromEncoding, $toEncoding)
-	{
-		if (is_array($data)) {
-			foreach ($data as $key => $value) {
-				$data[$key] = static::convertEncoding($value, $fromEncoding, $toEncoding);
-			}
-		} else {
-			$data = iconv($fromEncoding, $toEncoding, $data);
-		}
+	 *
+	 * @return string|array|false
+     */
+    public static function convertEncoding(array|string $data, string $fromEncoding, string $toEncoding): string|array|false
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
 
-		return $data;
-	}
+                if (!is_array($value) && !is_string($value)) {
+                    return false;
+                }
 
-	/**
-	 * Вычисляет необходимость прерывания скрипта в долгих операциях
-	 * 
-	 * @param integer $start_time
-	 * 
-	 * @return bool
-	 */
-	public static function isNeedBreak($start_time)
-	{
+                $data[$key] = static::convertEncoding($value, $fromEncoding, $toEncoding);
+            }
+        } else {
+            $data = iconv($fromEncoding, $toEncoding, $data);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Вычисляет необходимость прерывания скрипта в долгих операциях
+     *
+     * @param integer $start_time
+     *
+     * @return bool|int
+     */
+	public static function isNeedBreak(int $start_time): bool|int
+    {
 		$max_time = ini_get('max_execution_time');
 		$max_time = $max_time > 0 ? $max_time : (empty($_REQUEST['REQUEST_URI']) ? false : 60);
-		
+
 		if ($max_time > 0) {
 			return time() >= ($start_time + $max_time - 5);
 		}
