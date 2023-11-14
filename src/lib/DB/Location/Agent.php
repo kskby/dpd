@@ -77,7 +77,7 @@ class Agent
 
 		if ($localTime === false || $localTime < time() - 86400) {
 			try {
-				$ftpConnect = ftp_connect($parts['host'], isset($parts['port']) ? $parts['port'] : 21);
+				$ftpConnect = ftp_connect($parts['host'], $parts['port'] ?? 21);
 
 				if (!$ftpConnect) {
 					throw new \Exception('Can\'t connect to ftp server');
@@ -119,10 +119,8 @@ class Agent
      *
      * @return bool|array
      */
-	public function loadAll($position = 0, array $countries = ['RU', 'KZ', 'BY', 'AM', 'KG']): bool|array
+	public function loadAll(int $position = 0, array $countries = ['RU', 'KZ', 'BY', 'AM', 'KG']): bool|array
     {
-        ini_set('auto_detect_line_endings', true);
-
 		$start_time = time();
 		$countries  = array_intersect_key([
 				'RU' => 'россия',
@@ -133,7 +131,6 @@ class Agent
 			], array_flip($countries)
 		);
 
-		$path = $this->getCityFilePath();
 		$file = @fopen($this->getCityFilePath(), 'r');
 
 		if ($file === false) {
@@ -142,9 +139,8 @@ class Agent
 
 		fseek($file, $position ?: 0);
 
-		$index = 0;
-
-		while(($row = fgetcsv($file, null, ';')) !== false) {
+        // Файл создан в системе Macintosh. Укажем символ разделитель строк "\n" (CR)
+        while(($row = fgetcsv($file, null, ';', 'n')) !== false) {
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),
