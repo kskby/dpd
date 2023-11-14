@@ -14,7 +14,7 @@ class Agent
 	/**
 	 * @deprecated
 	 */
-	protected static $cityFilePath = 'ftp://integration:xYUX~7W98@ftp.dpd.ru/integration/GeographyDPD_%s.csv';
+	protected static string $cityFilePath = 'ftp://integration:xYUX~7W98@ftp.dpd.ru/integration/GeographyDPD_%s.csv';
 
 	protected $api;
 	protected $table;
@@ -60,8 +60,8 @@ class Agent
 	/**
 	 * @return string
 	 */
-	public function getCityFilePath()
-	{
+	public function getCityFilePath(): string
+    {
 		$path  = sprintf(static::$cityFilePath, date('Ymd'));
 		$parts = parse_url($path);
 
@@ -84,7 +84,7 @@ class Agent
 				}
 
 				if (!ftp_login($ftpConnect, $parts['user'], $parts['pass'])) {
-					throw new \Exception('Can\'t login into ftp server');;
+					throw new \Exception('Can\'t login into ftp server');
 				}
 
 				ftp_pasv($ftpConnect, true);
@@ -95,10 +95,23 @@ class Agent
 					throw new \Exception('Can\'t write local file');
 				}
 
-				if (!ftp_fget($ftpConnect, $file, $parts['path'], FTP_BINARY)) {
+				if (!ftp_fget($ftpConnect, $file, $parts['path'])) {
 					throw new \Exception('Can\'t write download file');
 				}
 
+                unset($file);
+
+                $content = file_get_contents($localPath .'.bak');
+
+                if (!$content) {
+                    throw new \Exception('Can\'t not read the file');
+                }
+
+                $content = str_replace("\r",PHP_EOL, $content);
+
+                if (!file_put_contents($localPath .'.bak', $content)) {
+                    throw new \Exception('Can\'t write converter file');
+                }
 				if (!rename($localPath .'.bak', $localPath)) {
 					throw new \Exception('Can\'t rename downloaded file');
 				}
@@ -139,8 +152,7 @@ class Agent
 
 		fseek($file, $position ?: 0);
 
-        // Файл создан в системе Macintosh. Укажем символ разделитель строк "\n" (CR)
-        while(($row = fgetcsv($file, null, ';', 'n')) !== false) {
+        while(($row = fgetcsv($file, null, ';')) !== false) {
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),
