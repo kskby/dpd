@@ -1,6 +1,7 @@
 vendor/
 data/cache/
 data/db/data.sq3
+data/cities.csv
 examples/test.php
 .idea
 *.logs
