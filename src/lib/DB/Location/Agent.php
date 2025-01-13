@@ -1,10 +1,11 @@
 <?php
 namespace Ipol\DPD\DB\Location;
 
-use \Ipol\DPD\Config\ConfigInterface;
-use \Ipol\DPD\API\User\UserInterface;
-use \Ipol\DPD\DB\TableInterface;
-use \Ipol\DPD\Utils;
+use Exception;
+use Ipol\DPD\API\User\UserInterface;
+use Ipol\DPD\DB\TableInterface;
+use Ipol\DPD\Utils;
+use Ipol\DPD\DB\Location\Normalizer;
 
 /**
  * Класс реализует методы обновления информации о городах в которых работает DPD
@@ -16,8 +17,8 @@ class Agent
 	 */
 	protected static string $cityFilePath = 'ftp://integration:xYUX~7W98@ftp.dpd.ru/integration/GeographyDPD_%s.csv';
 
-	protected $api;
-	protected $table;
+	protected UserInterface|\Ipol\DPD\User\UserInterface $api;
+	protected TableInterface $table;
 
 	/**
 	 * Конструктор
@@ -31,35 +32,24 @@ class Agent
 		$this->table = $table;
 	}
 
-	/**
-	 * @return \Ipol\DPD\User\UserInterface
-	 */
-	public function getApi()
-	{
+	public function getApi(): \Ipol\DPD\User\UserInterface|UserInterface
+    {
 		return $this->api;
 	}
 
-	/**
-	 * @return \Ipol\DPD\DB\Location\Table
-	 */
-	public function getTable()
-	{
+	public function getTable(): TableInterface|Table
+    {
 		return $this->table;
 	}
 
 	/**
 	 * Возвращает normalizer адресов
-	 *
-	 * @return \Ipol\DPD\DB\Location\Normilizer
 	 */
-	public function getNormalizer()
-	{
+	public function getNormalizer(): Normalizer
+    {
 		return $this->getTable()->getNormalizer();
 	}
 
-	/**
-	 * @return string
-	 */
 	public function getCityFilePath(): string
     {
 		$path  = sprintf(static::$cityFilePath, date('Ymd'));
@@ -80,11 +70,11 @@ class Agent
 				$ftpConnect = ftp_connect($parts['host'], $parts['port'] ?? 21);
 
 				if (!$ftpConnect) {
-					throw new \Exception('Can\'t connect to ftp server');
+					throw new Exception('Can\'t connect to ftp server');
 				}
 
 				if (!ftp_login($ftpConnect, $parts['user'], $parts['pass'])) {
-					throw new \Exception('Can\'t login into ftp server');
+					throw new Exception('Can\'t login into ftp server');
 				}
 
 				ftp_pasv($ftpConnect, true);
@@ -92,11 +82,11 @@ class Agent
 				$file = fopen($localPath .'.bak', 'w');
 
 				if (!$file) {
-					throw new \Exception('Can\'t write local file');
+					throw new Exception('Can\'t write local file');
 				}
 
 				if (!ftp_fget($ftpConnect, $file, $parts['path'])) {
-					throw new \Exception('Can\'t write download file');
+					throw new Exception('Can\'t write download file');
 				}
 
                 unset($file);
@@ -104,19 +94,19 @@ class Agent
                 $content = file_get_contents($localPath .'.bak');
 
                 if (!$content) {
-                    throw new \Exception('Can\'t not read the file');
+                    throw new Exception('Can\'t not read the file');
                 }
 
                 $content = str_replace("\r",PHP_EOL, $content);
 
                 if (!file_put_contents($localPath .'.bak', $content)) {
-                    throw new \Exception('Can\'t write converter file');
+                    throw new Exception('Can\'t write converter file');
                 }
 				if (!rename($localPath .'.bak', $localPath)) {
-					throw new \Exception('Can\'t rename downloaded file');
+					throw new Exception('Can\'t rename downloaded file');
 				}
 
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 
 			}
 		}
@@ -194,16 +184,16 @@ class Agent
 		return true;
 	}
 
-	/**
-	 * Обновляет города в которых доступен НПП
-	 *
-	 * @param string $position  Стартовая позиция импорта
-	 * @param array  $countries Массив стран для обработки
-	 *
-	 * @return true|string
-	 */
-	public function loadCashPay($position = 'RU:0', $countries = ['RU', 'KZ', 'BY', 'AM', 'KG'])
-	{
+    /**
+     * Обновляет города в которых доступен НПП
+     *
+     * @param string $position Стартовая позиция импорта
+     * @param array $countries Массив стран для обработки
+     *
+     * @return bool|array
+     */
+	public function loadCashPay(string $position = 'RU:0', array $countries = ['RU', 'KZ', 'BY', 'AM', 'KG']): bool|array
+    {
 		$position   = explode(':', $position ?: 'RU:0');
 		$started    = false;
 		$start_time = time();
@@ -258,8 +248,8 @@ class Agent
 	 *
 	 * @return bool
 	 */
-	protected function loadLocation($city, $additFields = array())
-	{
+	protected function loadLocation(array $city, array $additFields = array()): bool
+    {
 		$fields = array_merge($city, $additFields);
 
 		$exists = $this->getTable()->findFirst([

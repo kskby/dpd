@@ -6,7 +6,7 @@ namespace Ipol\DPD\Config;
  */
 class Config implements ConfigInterface
 {
-    protected $options = [
+    protected array $options = [
         /** Директория для хранения файлов */
         'UPLOAD_DIR' => __DIR__ .'/../../../data/upload/',
 
@@ -73,36 +73,36 @@ class Config implements ConfigInterface
         /** Включать страховку в стоимость доставки */
         'DECLARED_VALUE' => true,
 
-        /** 
+        /**
          * Включать комиссию за инкассацию наложенным платежом в стоимость доставки
          * массив вида [PERSONE_TYPE_ID => bool, ...]
          */
         'COMMISSION_NPP_CHECK' => [],
 
-        /** 
+        /**
          * Комиссия от стоимости товаров в заказе (в процентах), %
          * массив вида [PERSONE_TYPE_ID => double, ...]
          */
         'COMMISSION_NPP_PERCENT' => [],
 
-        /** 
-         * Минимальная сумма комиссии, руб. 
+        /**
+         * Минимальная сумма комиссии, руб.
          * массив вида [PERSONE_TYPE_ID => double, ...]
          */
         'COMMISSION_NPP_MINSUM' => [],
 
-        /** 
-         * ID платежных системы, которые означают что оплата будет происходить наложенным платежом 
+        /**
+         * ID платежных системы, которые означают что оплата будет происходить наложенным платежом
          * массив вида [PERSONE_TYPE_ID => [PAYMENT_SYSTEM_ID, ...], ...]
          */
         'COMMISSION_NPP_PAYMENT' => [],
 
-        /** 
+        /**
          * Если платежную систему определить не удалось, считать ли что оплата будет происходить наложенным платежом по умолчанию?
-         * массив вида [PERSONE_TYPE_ID => bool, ...]
+         * Массив вида [PERSONE_TYPE_ID => bool, ...]
          */
         'COMMISSION_NPP_DEFAULT' => [],
-        
+
         /**
          * Название источника заявок в DPD
          */
@@ -110,35 +110,35 @@ class Config implements ConfigInterface
 
         'MARKUP' => [
             'VALUE' => 0,
-            'TYPE'  => 'FIXED', // PERCENT 
+            'TYPE'  => 'FIXED', // PERCENT
         ]
     ];
 
     /**
      * Конструктор
-     * 
+     *
      * @params array $parms массив опция для переопределения
      */
-    public function __construct($parms = [])
+    public function __construct(array $parms = [])
     {
         $this->init($parms);
     }
 
     /**
      * Получение значения опции
-     * 
-     * @param string $option       Название опции
-     * @param mixed  $defaultValue Значение по умолчанию, если опция не определена
-     * 
+     *
+     * @param string $option Название опции
+     * @param mixed $defaultValue Значение по умолчанию, если опция не определена
+     * @param null $subKey
      * @return mixed
      */
-    public function get($option, $defaultValue = null, $subKey = null)
+    public function get($option, $defaultValue = null, $subKey = null): mixed
     {
         if (!isset($this->options[$option])) {
             return $defaultValue;
         }
 
-        if (isset($subKey) && is_array($this->options[$option])) {           
+        if (isset($subKey) && is_array($this->options[$option])) {
             if (isset($this->options[$option][$subKey])) {
                 return $this->options[$option][$subKey];
             }
@@ -151,13 +151,13 @@ class Config implements ConfigInterface
 
     /**
      * Запись значения опции
-     * 
+     *
      * @param string $option Название опции
      * @param mixed  $value  Значение опции
-     * 
+     *
      * @return self
      */
-    public function set($option, $value)
+    public function set(string $option, mixed $value): static
     {
         $this->options[$option] = $value;
 
@@ -169,7 +169,7 @@ class Config implements ConfigInterface
      *
      * @return boolean
      */
-    public function isActiveAccount()
+    public function isActiveAccount(): bool
     {
         $accountLang = $this->get('API_DEF_COUNTRY');
         $accountLang = $accountLang != 'RU' ? $accountLang : '';
@@ -182,12 +182,12 @@ class Config implements ConfigInterface
 
     /**
      * Вызывается после создания объекта
-     * 
+     *
      * @param array $parms массив опций для переопределения
-     * 
+     *
      * @return void
      */
-    protected function init($parms = [])
+    protected function init(array $parms = []): void
     {
         $this->options = array_merge($this->options, $parms);
     }

@@ -10,21 +10,21 @@ class Table extends AbstractTable
 {
 	/**
 	 * Возвращает имя таблицы
-	 * 
+	 *
 	 * @return string
 	 */
-	public function getTableName()
-	{
+	public function getTableName(): string
+    {
 		return 'b_ipol_dpd_location';
 	}
 
 	/**
 	 * Возвращает список полей и их значения по умолчанию
-	 * 
+	 *
 	 * @return array
 	 */
-	public function getFields()
-	{
+	public function getFields(): array
+    {
 		return [
 			'ID'              => null,
 			'COUNTRY_CODE'    => null,
@@ -44,24 +44,24 @@ class Table extends AbstractTable
 
 	/**
 	 * Возвращает normalizer адресов
-	 * 
-	 * @return \Ipol\DPD\DB\Location\Normalizer
+	 *
+	 * @return Normalizer
 	 */
-	public function getNormalizer()
-	{
+	public function getNormalizer(): Normalizer
+    {
 		return new Normalizer();
 	}
 
-	/**
-	 * Возвращает запись по ID города
-	 * 
-	 * @param  int $locationId
-	 * @param  array  $select
-	 * 
-	 * @return array|false
-	 */
-	public function getByCityId($cityId, $select = '*')
-	{
+    /**
+     * Возвращает запись по ID города
+     *
+     * @param $cityId
+     * @param string $select
+     *
+     * @return array
+     */
+	public function getByCityId($cityId, string $select = '*'): array
+    {
 		return $this->findFirst([
 			'select' => $select,
 			'where'  => 'CITY_ID = :city_id',
@@ -73,16 +73,16 @@ class Table extends AbstractTable
 
 	/**
 	 * Производит поиск города по текстовому названию в БД
-	 * 
+	 *
 	 * @param string $country Название страны
 	 * @param string $region  Название региона
 	 * @param string $city    Название города
 	 * @param string $select  список полей которые необходимо выбрать
-	 * 
+	 *
 	 * @return array
 	 */
-	public function getByAddress($country, $region, $city, $select = '*')
-	{
+	public function getByAddress(string $country, string $region, string $city, string $select = '*'): array
+    {
 		$city = $this->getNormalizer()->normilize($country, $region, $city);
 
 		if (empty($city['CITY_ABBR'])) {

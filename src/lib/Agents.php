@@ -1,8 +1,12 @@
 <?php
 namespace Ipol\DPD;
 
+use Exception;
 use \Ipol\DPD\API\User\User as API;
 use \Ipol\DPD\Config\ConfigInterface;
+use Ipol\DPD\DB\Connection;
+use Ipol\DPD\DB\Terminal\Agent;
+use PDO;
 
 /**
  * Класс содержит набор готовых методов реализующих выполнение периодических
@@ -10,43 +14,46 @@ use \Ipol\DPD\Config\ConfigInterface;
  */
 class Agents
 {
-	/**
-	 * Обновляет статусы заказов
-	 * 
-	 * Обновление статусов происходит в 2 этапа.
-	 * На первом этапе обрабатываются заказы, которые создались в статусе "Ожидают проверки менеджером DPD"
-	 * На втором этапе обрабатываются остальные заказы. Для получения изменений по статусам используется 
-	 * метод getStatesByClient
-	 * 
-	 * @param \Ipol\DPD\Config\ConfigInterface $config
-	 * 
-	 * @return void
-	 */
-	public static function checkOrderStatus(ConfigInterface $config)
-	{
+    /**
+     * Обновляет статусы заказов
+     *
+     * Обновление статусов происходит в 2 этапа.
+     * На первом этапе обрабатываются заказы, которые создались в статусе "Ожидают проверки менеджером DPD"
+     * На втором этапе обрабатываются остальные заказы. Для получения изменений по статусам используется
+     * метод getStatesByClient
+     *
+     * @param ConfigInterface $config
+     *
+     * @return array|null
+     * @throws Exception
+     */
+	public static function checkOrderStatus(ConfigInterface $config): ?array
+    {
 		return array_merge(
 			self::checkPindingOrderStatus($config),
 			self::checkTrakingOrderStatus($config)
 		);
 	}
 
-	/**
-	 * Проверяет статусы заказов ожидающих проверки
-	 * 
-	 * @return void
-	 */
-	protected static function checkPindingOrderStatus(ConfigInterface $config)
-	{
+    /**
+     * Проверяет статусы заказов ожидающих проверки
+     *
+     * @param ConfigInterface $config
+     * @return array
+     * @throws Exception
+     */
+	protected static function checkPindingOrderStatus(ConfigInterface $config): array
+    {
 		$ret    = [];
-		$table  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order');
+		$table  = Connection::getInstance($config)->getTable('order');
 		$orders = $table->find([
 			'where' => 'ORDER_STATUS = :order_status',
 			'order' => 'ORDER_DATE_STATUS ASC, ORDER_DATE_CREATE ASC',
 			'limit' => '0,200',
 			'bind'  => [
-				':order_status' => \Ipol\DPD\Order::STATUS_PENDING
+				':order_status' => Order::STATUS_PENDING
 			]
-		])->fetchAll(\PDO::FETCH_CLASS|\PDO::FETCH_PROPS_LATE, $table->getModelClass(), [$table]);
+		])->fetchAll(PDO::FETCH_CLASS| PDO::FETCH_PROPS_LATE, $table->getModelClass(), [$table]);
 
 		foreach ($orders as $order) {
 			$order->dpd()->checkStatus();
@@ -57,13 +64,15 @@ class Agents
 		return $ret;
 	}
 
-	/**
-	 * Проверяет статусы заказов прошедшие проверку
-	 * 
-	 * @return void
-	 */
-	protected static function checkTrakingOrderStatus(ConfigInterface $config)
-	{
+    /**
+     * Проверяет статусы заказов прошедшие проверку
+     *
+     * @param ConfigInterface $config
+     * @return array
+     * @throws Exception
+     */
+	protected static function checkTrakingOrderStatus(ConfigInterface $config): array
+    {
 		$result = [];
 
 		// if (!$config->get('STATUS_ORDER_CHECK')) {
@@ -78,7 +87,7 @@ class Agents
 				return $ret;
 			}
 
-			$states = isset($ret['EVENT']) ? $ret['EVENT'] : [];
+			$states = $ret['EVENT'] ?? [];
 			$states = array_key_exists('DPD_ORDER_NR', $states) ? array($states) : $states;
 			$states = array_filter($states, function($item) {
 				return isset($item['CLIENT_ORDER_NR']);
@@ -98,8 +107,8 @@ class Agents
 
 
 			foreach ($states as $state) {
-				$order = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('order')->getByOrderId($state['CLIENT_ORDER_NR']);
-				
+				$order = Connection::getInstance($config)->getTable('order')->getByOrderId($state['CLIENT_ORDER_NR']);
+
 				if (!$order) {
 					continue;
 				}
@@ -109,10 +118,10 @@ class Agents
 				$eventNumber = $state['EVENT_NUMBER'];
 				$eventCode   = $state['EVENT_CODE'] ?: $state['TYPE_CODE'];
 				$eventName   = $state['EVENT_NAME'];
-				$eventReason = isset($state['REASON_NAME']) ? $state['REASON_NAME'] : '';
+				$eventReason = $state['REASON_NAME'] ?? '';
 				$eventTime   = date('Y-m-d H:i:s', strtotime($state['EVENT_DATE']));
 				$eventParams = [];
-				$number      = isset($state['DPD_ORDER_NR']) ? $state['DPD_ORDER_NR'] : null;
+				$number      = $state['DPD_ORDER_NR'] ?? null;
 
 				$params = isset($state['PARAMETER']['PARAM_NAME'])
 					? [$state['PARAMETER']]
@@ -120,7 +129,7 @@ class Agents
 				;
 
 				foreach ($params as $param) {
-					$eventParams[$param['PARAM_NAME']] = isset($param['VALUE']) ? $param['VALUE'] : null;
+					$eventParams[$param['PARAM_NAME']] = $param['VALUE'] ?? null;
 				}
 
 				if (isset($eventParams['ORDER_NUMBER'])) {
@@ -140,29 +149,38 @@ class Agents
 		return $result;
 	}
 
-	/**
-	 * Загружает в локальную БД данные о местоположениях и терминалах
-	 * 
-	 * @param \Ipol\DPD\Config\ConfigInterface $config
-	 * 
-	 * @return string
-	 */
-	public static function loadExternalData(ConfigInterface $config)
-	{
+    /**
+     * Загружает в локальную БД данные о местоположениях и терминалах
+     *
+     * @param ConfigInterface $config
+     *
+     * @return void
+     * @throws Exception
+     */
+	public static function loadExternalData(ConfigInterface $config): void
+    {
 		$api = API::getInstanceByConfig($config);
 
-		$locationTable  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('location');
-		$terminalTable  = \Ipol\DPD\DB\Connection::getInstance($config)->getTable('terminal');
+		$locationTable  = Connection::getInstance($config)->getTable('location');
+		$terminalTable  = Connection::getInstance($config)->getTable('terminal');
 
-		$locationLoader = new \Ipol\DPD\DB\Location\Agent($api, $locationTable);
-		$terminalLoader = new \Ipol\DPD\DB\Terminal\Agent($api, $terminalTable);
+		$locationLoader = new DB\Location\Agent($api, $locationTable);
+		$terminalLoader = new Agent($api, $terminalTable);
 
 		$currStep = $config->get('LOAD_EXTERNAL_DATA_STEP');
-		$position = $config->get('LOAD_EXTERNAL_DATA_POSITION');
+		$position = $config->get('LOAD_EXTERNAL_DATA_POSITION') ?? 0;
+        $countries = $config->get('LOAD_EXTERNAL_DATA_COUNTRIES') ?? ['RU', 'KZ', 'BY', 'AM', 'KG'];
 
 		switch ($currStep) {
+            case 'LOAD_LOCATIONL_LIMITED':
+                $locationLoader->loadAll($position, $countries);
+                $ret = false;
+                $currStep = 'LOAD_LOCATIONL_LIMITED';
+                $nextStep = 'LOAD_FINISH';
+                break;
+
 			case 'LOAD_LOCATION_ALL':
-				$ret      = $locationLoader->loadAll($position);
+				$ret      = $locationLoader->loadAll($position, $countries);
 				$currStep = 'LOAD_LOCATION_ALL';
 				$nextStep = 'LOAD_LOCATION_CASH_PAY';
 
@@ -205,7 +223,7 @@ class Agents
 				if ($ret !== true) {
 					break;
 				}
-			
+
 			default:
 				$ret      = true;
 				$currStep = 'LOAD_FINISH';

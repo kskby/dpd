@@ -15,7 +15,7 @@ class Normalizer
      *
      * @return array
      */
-    public function normilize($country, $region, $locality)
+    public function normilize(string $country, string $region, string $locality): array
     {
         return array_merge(
             $country  = $this->normilizeCountry($country),
@@ -31,10 +31,10 @@ class Normalizer
      *
      * @return array
      */
-    public function normilizeCountry($country)
+    public function normilizeCountry(string $country): array
     {
         return [
-            'COUNTRY_NAME' => $country,
+            'COUNTRY_NAME' => str_replace('ё', 'е', $country),
             'COUNTRY_CODE' => array_search(mb_strtolower($country, 'UTF-8'), $this->getCountryList()),
         ];
     }
@@ -43,16 +43,16 @@ class Normalizer
      * Возвращает информацию о регионе
      *
      * @param string $region
-     * @param array  $country
+     * @param array $country
      *
      * @return array
      */
-    public function normilizeRegion($region, $country)
+    public function normilizeRegion(string $region, array $country): array
     {
         $this->trimAbbr($region, $this->getRegionAbbrList());
 
         return [
-            'REGION_NAME' => $region,
+            'REGION_NAME' => str_replace('ё', 'е', $region),
             'REGION_CODE' => array_search(
                 mb_strtolower($region, 'UTF-8'),
                 $this->getRegionCodeList($country['COUNTRY_CODE'])
@@ -64,11 +64,11 @@ class Normalizer
      * Возвращает нормализованную информацию о нас. пункте
      *
      * @param string $city
-     * @param array  $region
+     * @param array $region
      *
      * @return array
      */
-    public function normilizeCity($city, $region)
+    public function normilizeCity(string $city, array $region): array
     {
         $abbr = $this->trimAbbr($city, array_merge(
             $this->getCityAbbrList(),
@@ -78,7 +78,7 @@ class Normalizer
         $city = $this->checkAnalog($city, $region);
 
         return [
-            'CITY_NAME' => $city,
+            'CITY_NAME' => str_replace('ё', 'е', $city),
             'CITY_ABBR' => $abbr,
             'IS_CITY'   => in_array($abbr, $this->getCityAbbrList()) ? 1 : 0,
         ];
@@ -88,11 +88,11 @@ class Normalizer
      * Объединяет города аналоги в один город
      *
      * @param string $city
-     * @param array  $region
+     * @param array $region
      *
      * @return string
      */
-    public function checkAnalog($city, $region)
+    public function checkAnalog(string $city, array $region): string
     {
         $regionLower = mb_strtolower($region['REGION_NAME'], 'UTF-8');
         $cityLower   = mb_strtolower($city, 'UTF-8');
@@ -112,12 +112,12 @@ class Normalizer
      * Удаляет из строки аббревиатуру и возвращает ее
      *
      * @param string $string
-     * @param array  $abbrList
+     * @param array $abbrList
      *
-     * @return string|false
+     * @return bool|string|null
      */
-    protected function trimAbbr(&$string, $abbrList)
-	{
+    protected function trimAbbr(string &$string, array $abbrList): bool|string|null
+    {
         usort($abbrList, function($a, $b) {
             return mb_strlen($b, 'UTF-8') - mb_strlen($a, 'UTF-8');
         });
@@ -145,7 +145,7 @@ class Normalizer
      *
      * @return array
      */
-    protected function getCountryList()
+    protected function getCountryList(): array
     {
         return [
             'RU' => 'россия',
@@ -159,7 +159,7 @@ class Normalizer
      *
      * @return array
      */
-    protected function getRegionAbbrList()
+    protected function getRegionAbbrList(): array
     {
         return [
             'автономный округ',
@@ -177,12 +177,11 @@ class Normalizer
     /**
      * Возвращает список кодов регионов
      *
-     * @param string $region
      * @param string $countryCode
      *
      * @return array
      */
-    protected function getRegionCodeList($countryCode)
+    protected function getRegionCodeList(string $countryCode): array
     {
         $file = __DIR__ .'/../../../../data/regions_'. $countryCode .'.php';
 
@@ -198,7 +197,7 @@ class Normalizer
      *
      * @return array
      */
-    protected function getCityAbbrList()
+    protected function getCityAbbrList(): array
     {
         return [
             'город',
@@ -258,7 +257,7 @@ class Normalizer
      *
      * @return array
      */
-    protected function getCityAnalogs()
+    protected function getCityAnalogs(): array
     {
         return [];
 
