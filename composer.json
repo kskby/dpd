@@ -10,7 +10,7 @@
     ],
     "require": {
         "php": ">= 8.1",
-        "symfony/cache": "3.4.x-dev",
+        "symfony/cache": "7.*",
       "ext-iconv": "*",
       "ext-mbstring": "*",
       "ext-ftp": "*",
