@@ -85,7 +85,7 @@ class Calculator
      * @param UserInterface|null $api инстанс API который будет использован в расчете,
      *                                                    по умолчанию будет взят из конфига
      */
-	public function __construct(Shipment $shipment, UserInterface $api = null)
+	public function __construct(Shipment $shipment, ?UserInterface $api = null)
 	{
 		$this->shipment                  = $shipment;
 		$this->api                       = $api ?: API::getInstanceByConfig($this->getConfig());

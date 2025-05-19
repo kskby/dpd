@@ -142,7 +142,7 @@ class Agent
 
 		fseek($file, $position ?: 0);
 
-        while(($row = fgetcsv($file, null, ';')) !== false) {
+        while(($row = fgetcsv($file, null, ';', escape: '\\')) !== false) {
 			if (Utils::isNeedBreak($start_time)) {
 				return [
 					ftell($file),

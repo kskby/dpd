@@ -10,7 +10,7 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Конструктор класса
-     * 
+     *
      * @param \Ipol\DPD\DB\ConnectionInterface
      */
     public function __construct(ConnectionInterface $connection)
@@ -20,17 +20,17 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Возвращает соединение с БД
-     * 
+     *
      * @return \Ipol\DPD\DB\ConnectionInterface
      */
-    public function getConnection() 
+    public function getConnection()
     {
         return $this->connection;
     }
 
     /**
      * Возвращает конфиг
-     * 
+     *
      * @return \Ipol\DPD\Config\ConfigInterface
      */
     public function getConfig()
@@ -40,7 +40,7 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Возвращает инстанс PDO
-     * 
+     *
      * @return \PDO
      */
     public function getPDO()
@@ -50,7 +50,7 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Возвращает имя класса модели
-     * 
+     *
      * @return array
      */
     public function getModelClass()
@@ -60,7 +60,7 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Возвращает инстанс модели ассоциированной с таблицой
-     * 
+     *
      * @return \Ipol\DPD\DB\Model
      */
     public function makeModel($id = false)
@@ -74,7 +74,7 @@ abstract class AbstractTable implements TableInterface
      * Возвращает список моделей отобранных по условию
      *
      * @param array $parms
-     * 
+     *
      * @return array
      */
     public function findModels($parms)
@@ -91,7 +91,7 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Создание таблицы при необходимости
-     * 
+     *
      * @return void
      */
     public function checkTableSchema()
@@ -108,13 +108,13 @@ abstract class AbstractTable implements TableInterface
         }
 	}
 
-	
+
 
     /**
      * Добавление записи
-     * 
+     *
      * @param array $values
-     * 
+     *
      * @return bool
      */
     public function add($values)
@@ -122,9 +122,9 @@ abstract class AbstractTable implements TableInterface
         $fields       = array_keys($values);
         $values       = $this->prepareParms($values);
         $placeholders = array_keys($values);
-        
+
         $sql = 'INSERT INTO '
-            . $this->getTableName() 
+            . $this->getTableName()
             . ' ('. implode(',', $fields) .') VALUES ('
             . implode(',', $placeholders) .')'
         ;
@@ -138,10 +138,10 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Обновление записи
-     * 
+     *
      * @param int   $id
      * @param array $values
-     * 
+     *
      * @return bool
      */
     public function update($id, $values)
@@ -149,7 +149,7 @@ abstract class AbstractTable implements TableInterface
         $fields       = array_keys($values);
         $values       = $this->prepareParms($values);
         $placeholders = array_keys($values);
-        
+
         $sql = 'UPDATE '. $this->getTableName() .' SET ';
         foreach ($fields as $i => $field) {
             $sql .= $field .'='. $placeholders[$i] .',';
@@ -159,16 +159,16 @@ abstract class AbstractTable implements TableInterface
         return $this->getPDO()
                     ->prepare($sql)
                     ->execute(array_merge(
-                        $values, 
+                        $values,
                         [':id_where' => $id]
                     ));
     }
 
     /**
      * Удаление записи
-     * 
+     *
      * @param int $id
-     * 
+     *
      * @return bool
      */
     public function delete($id)
@@ -179,10 +179,10 @@ abstract class AbstractTable implements TableInterface
                     ->prepare($sql)
                     ->execute([':id' => $id]);
     }
-    
+
     /**
      * Выборка записей
-     * 
+     *
      * $parms = "id = 1" or
      * $parms = [
      *  'select' => '*',
@@ -191,9 +191,9 @@ abstract class AbstractTable implements TableInterface
      *  'limit'  => '0,1',
      *  'bind'   => [':id' => 1]
      * ]
-     * 
+     *
      * @param string|array $parms
-     * 
+     *
      * @return \PDOStatement
      */
     public function find($parms = [])
@@ -204,7 +204,7 @@ abstract class AbstractTable implements TableInterface
                 'where' => $parms,
             ]
         ;
-        
+
         $sql = sprintf('SELECT %s FROM %s %s %s %s',
             isset($parms['select'])     ? $parms['select'] : implode(',', array_keys($this->getFields())),
             $this->getTableName(),
@@ -215,15 +215,15 @@ abstract class AbstractTable implements TableInterface
 
         $query  = $this->getPDO()->prepare($sql);
         $result = isset($parms['bind']) ? $query->execute($parms['bind']) : $query->execute();
-        
+
         return $result ? $query : false;
     }
 
     /**
      * Выборка одной записи, псевдномим над find limit 0,1
-     * 
+     *
      * @param int|string|array $parms
-     * 
+     *
      * @return array
      */
     public function findFirst($parms = [])
@@ -241,9 +241,9 @@ abstract class AbstractTable implements TableInterface
 
     /**
      * Составляет массив bind-values для передачи в PDO
-     * 
+     *
      * @param array $parms
-     * 
+     *
      * @return array
      */
     protected function prepareParms($parms)

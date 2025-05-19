@@ -580,7 +580,7 @@ class Shipment
      *
      * @return \Ipol\DPD\Calculator
      */
-    public function calculator(User $api = null)
+    public function calculator(?User $api = null)
     {
         return new Calculator($this, $api);
     }

@@ -14,7 +14,7 @@ class Dictionary
 	 *
 	 * @param array $values
 	 */
-	public function __construct(array $values = null)
+	public function __construct(?array $values = null)
 	{
 		if($values !== null)
 		{
